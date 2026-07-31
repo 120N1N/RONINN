@@ -1,0 +1,21 @@
+# Keep live target evidence and secrets local.
+.DS_Store
+.env
+.env.*
+*.secret
+*.token
+cookies*.txt
+headers*.txt
+.dashboard.*
+
+engagements/*/*/evidence/burp/*
+engagements/*/*/evidence/responses/*
+engagements/*/*/evidence/screenshots/*
+engagements/*/*/evidence/logs/*
+engagements/*/*/.private/*
+
+!engagements/.gitkeep
+!engagements/*/*/evidence/burp/.gitkeep
+!engagements/*/*/evidence/responses/.gitkeep
+!engagements/*/*/evidence/screenshots/.gitkeep
+!engagements/*/*/evidence/logs/.gitkeep

@@ -1,0 +1,232 @@
+/* frontend/src/styles/tool-breakdown.css */
+
+.tool-result-breakdown {
+  margin: 2rem 0;
+}
+
+.tool-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tool-summary-card {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 1.25rem;
+  border: 1px solid #2a2a2a;
+  transition: transform 0.2s;
+}
+
+.tool-summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.tool-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tool-icon {
+  font-size: 1.5rem;
+}
+
+.tool-category {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  display: block;
+}
+
+.risk-badge {
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.risk-low { background: #10b98120; color: #10b981; }
+.risk-medium { background: #f59e0b20; color: #f59e0b; }
+.risk-high { background: #ef444420; color: #ef4444; }
+.risk-info { background: #06b6d420; color: #06b6d4; }
+.risk-unknown { background: #6b728020; color: #9ca3af; }
+
+.tool-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.severity-mini-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.severity-segment {
+  font-size: 0;
+  transition: width 0.3s;
+}
+
+.severity-critical { background: #b71c1c; }
+.severity-high { background: #e53935; }
+.severity-medium { background: #fb8c00; }
+.severity-low { background: #fdd835; }
+.severity-informational { background: #2196f3; }
+
+.ai-stats-mini {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ai-badge { color: #8b5cf6; }
+.tp-badge { color: #10b981; }
+.fp-badge { color: #ef4444; }
+
+/* Tool Detail Section */
+.tool-detail-section {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.tool-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tool-detail-header:hover {
+  filter: brightness(1.2);
+}
+
+.expand-icon {
+  margin-left: auto;
+  font-size: 0.75rem;
+}
+
+.tool-detail-content {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.finding-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.finding-table th {
+  background: #1a1a1a;
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.finding-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.row-false-positive {
+  opacity: 0.6;
+  background: #ef444410;
+}
+
+.endpoint-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confidence-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 80px;
+}
+
+.confidence-fill {
+  height: 6px;
+  background: #8b5cf6;
+  border-radius: 3px;
+}
+
+.ai-badge-valid, .ai-badge-invalid, .ai-badge-pending {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.ai-badge-valid { background: #10b98120; color: #10b981; border: 1px solid #10b981; }
+.ai-badge-invalid { background: #ef444420; color: #ef4444; border: 1px solid #ef4444; }
+.ai-badge-pending { background: #6b728020; color: #9ca3af; border: 1px solid #6b7280; }
+
+.owasp-badge {
+  background: #1e3a8a;
+  color: #93c5fd;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.severity-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Caido Table */
+.caido-detail {
+  margin-top: 1.5rem;
+}
+
+.caido-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.caido-table th {
+  background: #06b6d415;
+  padding: 0.4rem;
+  text-align: left;
+  color: #06b6d4;
+}
+
+.caido-table td {
+  padding: 0.4rem;
+  border-bottom: 1px solid #2a2a2a;
+}

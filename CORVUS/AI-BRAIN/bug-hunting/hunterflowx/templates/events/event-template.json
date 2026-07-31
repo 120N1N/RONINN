@@ -1,0 +1,9 @@
+{
+  "id": "evt-example",
+  "ts": "2026-05-18T00:00:00+07:00",
+  "engagement_id": "program-target",
+  "actor": "ai",
+  "type": "operator_note_added",
+  "notes": "Replace with a real event."
+}
+

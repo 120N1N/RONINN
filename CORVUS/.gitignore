@@ -1,0 +1,51 @@
+# Environments
+.env
+venv/
+.venv/
+env/
+.env.local
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+corvus.db
+corvus_red.db
+corvus_v3.db
+
+# Datasets & Models
+datasets/
+models/
+preprocessed/
+*.h5
+*.pt
+*.pkl
+
+# Application logs and outputs
+tools_output/
+uploads/
+tunnel_config.yml
+*.log
+
+# Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Node / JS
+node_modules/
+dist/
+build/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# Binaries
+*.exe

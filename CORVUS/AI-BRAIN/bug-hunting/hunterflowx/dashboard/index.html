@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Bug Bounty Workflow Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-kicker">Bug bounty workflow</div>
+        <h1>AI Hunting Operations</h1>
+        <div class="meta-line" id="meta">loading graph_state.json</div>
+      </div>
+      <div class="topbar-actions">
+        <nav class="page-nav" aria-label="Dashboard pages">
+          <a href="/" class="active">Overview</a>
+          <a href="/neo4j">Neo4j Graph</a>
+          <a href="/command">Command Center</a>
+        </nav>
+        <div class="search-shell">
+          <label class="field">
+            <span>Global search</span>
+            <input id="globalSearch" type="search" placeholder="Search events, findings, reports, evidence..." autocomplete="off">
+          </label>
+          <div class="search-results" id="searchResults" hidden></div>
+        </div>
+        <label class="field">
+          <span>Engagement</span>
+          <select id="engagementSelect"></select>
+        </label>
+        <button id="refreshButton" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="overview-grid" id="overview"></section>
+
+      <section class="panel graph-gateway-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Attack Graph</h2>
+            <p>Neo4j graph has a dedicated workspace for wide path exploration and Cypher export.</p>
+          </div>
+          <div class="neo4j-actions">
+            <span class="count-pill" id="neo4jStatus">Neo4j optional</span>
+            <a class="link-button primary" id="openNeo4jLink" href="/neo4j">Open Attack Graph</a>
+            <a class="link-button" id="cypherLink" href="/api/neo4j/cypher" target="_blank" rel="noreferrer">Cypher</a>
+          </div>
+        </div>
+        <div class="graph-gateway">
+          <div class="graph-route">
+            <span>JS File</span>
+            <span>API Route</span>
+            <span>Param</span>
+            <span>Auth Role</span>
+            <span>Test Angle</span>
+            <span>Chaining</span>
+            <span>Evidence</span>
+            <span>Finding</span>
+          </div>
+          <div class="gateway-grid" id="graphSummary">
+            <div class="summary-card"><strong>-</strong><span>Attack paths</span></div>
+            <div class="summary-card"><strong>-</strong><span>Needs chain review</span></div>
+            <div class="summary-card"><strong>-</strong><span>Needs evidence</span></div>
+            <div class="summary-card"><strong>-</strong><span>Graph nodes</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-grid asymmetric">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Risk Priorities</h2>
+              <p>Highest-value endpoints to test first when the engagement gets large.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Endpoint</th>
+                  <th>Score</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody id="riskPriorities"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Evidence Quality & Verdict</h2>
+              <p>Reportability signal from baseline, negative control, mutation, read-back, and judge state.</p>
+            </div>
+          </div>
+          <div class="split-tables">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>Score</th>
+                    <th>Decision</th>
+                  </tr>
+                </thead>
+                <tbody id="evidenceJudge"></tbody>
+              </table>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Review</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="evidenceReviews"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Findings & Reports</h2>
+            <p>Read-only access to candidate findings, confirmed findings, report drafts, submitted reports, and evidence artifacts.</p>
+          </div>
+          <div class="artifact-tabs" id="artifactTabs">
+            <button type="button" data-kind="findings" class="active">Findings</button>
+            <button type="button" data-kind="reports">Reports</button>
+            <button type="button" data-kind="evidence">Evidence</button>
+            <button type="button" data-kind="all">All</button>
+          </div>
+        </div>
+        <div class="artifact-layout">
+          <div class="artifact-list" id="artifactList"></div>
+          <div class="artifact-preview" id="artifactPreview">
+            <div class="empty">Select an artifact to preview it here.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Endpoint Angles</h2>
+            <p>Queued and tested angles by endpoint.</p>
+          </div>
+        </div>
+        <div class="table-wrap scroll-medium">
+          <table>
+            <thead>
+              <tr>
+                <th>Endpoint</th>
+                <th>Angle</th>
+                <th>Status</th>
+                <th>Transport</th>
+                <th>Evidence / Reason</th>
+              </tr>
+            </thead>
+            <tbody id="angles"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <details class="section-disclosure" open>
+        <summary>
+          <span>
+            <strong>Secondary Context</strong>
+            <em>Source completeness, domain-specific depth, and operational queues.</em>
+          </span>
+        </summary>
+        <div class="content-grid secondary-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Source Completeness</h2>
+                <p>One-file-at-a-time source review coverage.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Source Root</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="sourceCompleteness"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Domain Depth</h2>
+                <p>WP, on-prem, and mobile specialization gates.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Domain</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>Checks</th>
+                    <th>Missing / Next Action</th>
+                  </tr>
+                </thead>
+                <tbody id="domainDepth"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Work Queue</h2>
+                <p>Gaps and active recursive loops that still need decisions.</p>
+              </div>
+            </div>
+            <div class="split-tables">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Gap</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="gaps"></tbody>
+              </table>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Loop</th>
+                    <th>State</th>
+                    <th>Next</th>
+                  </tr>
+                </thead>
+                <tbody id="loops"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </details>
+
+      <details class="section-disclosure">
+        <summary>
+          <span>
+            <strong>Advanced / Raw State</strong>
+            <em>Full metrics and graph internals for debugging the workflow.</em>
+          </span>
+        </summary>
+        <div class="advanced-stack">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Engagement Manager</h2>
+                <p>All initialized workspaces and their current coverage state.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Engagement</th>
+                    <th>Endpoints</th>
+                    <th>Tested</th>
+                    <th>Source</th>
+                    <th>Judge</th>
+                    <th>Risk</th>
+                    <th>Domain</th>
+                    <th>Findings</th>
+                    <th>Gaps</th>
+                  </tr>
+                </thead>
+                <tbody id="engagements"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="metrics-grid" id="metrics"></section>
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Raw Graph Nodes</h2>
+                <p>Durable graph state generated from the event ledger.</p>
+              </div>
+            </div>
+            <div class="table-wrap scroll-tall">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>ID</th>
+                    <th>Label</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="nodes"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </details>
+
+      <section class="panel activity-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Activity Diagram</h2>
+            <p>Live event flow from recon, source reading, testing, judge, and report loop.</p>
+          </div>
+          <span class="count-pill" id="activityCount">0 events</span>
+        </div>
+        <div class="activity-scroll">
+          <div class="activity-board" id="activityDiagram"></div>
+        </div>
+        <div class="activity-timeline" id="activityTimeline"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <h2 id="drawerTitle">Detail</h2>
+        <p id="drawerMeta"></p>
+      </div>
+      <button id="drawerClose" type="button">Close</button>
+    </div>
+    <pre id="drawerBody"></pre>
+  </aside>
+
+  <script src="/app.js"></script>
+</body>
+</html>

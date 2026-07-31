@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Command Center</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="command-page">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-kicker">Bug bounty workflow</div>
+        <h1>Command Center</h1>
+        <div class="meta-line" id="commandMeta">loading queue</div>
+      </div>
+      <div class="topbar-actions">
+        <nav class="page-nav" aria-label="Dashboard pages">
+          <a href="/">Overview</a>
+          <a href="/neo4j">Neo4j Graph</a>
+          <a href="/command" class="active">Command Center</a>
+        </nav>
+        <label class="field">
+          <span>Engagement</span>
+          <select id="engagementSelect"></select>
+        </label>
+        <button id="refreshButton" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main class="command-shell">
+      <section class="panel command-hero">
+        <div>
+          <h2>Run Queue</h2>
+          <p>Orchestrate recon, source review, endpoint mapping, angle planning, evidence scoring, fresh repro, and reporting from one controlled queue.</p>
+        </div>
+        <div class="command-actions">
+          <button id="seedQueue" type="button">Seed Pipeline</button>
+          <button id="runNext" type="button">Run Next Safe Task</button>
+        </div>
+      </section>
+
+      <section class="command-grid">
+        <section class="panel command-main">
+          <div class="panel-header">
+            <div>
+              <h2>Queue Tasks</h2>
+              <p>Active testing tasks stay blocked until explicitly approved.</p>
+            </div>
+          </div>
+          <div id="queueList" class="queue-list"></div>
+        </section>
+
+        <aside class="panel command-side">
+          <div class="panel-header">
+            <div>
+              <h2>Caido</h2>
+              <p>CLI status, launch command, and native history import.</p>
+            </div>
+          </div>
+          <div id="caidoStatus" class="tool-status"></div>
+          <div class="mini-form">
+            <label class="field">
+              <span>Import file path</span>
+              <input id="importFile" type="text" placeholder="/path/to/caido-export.har">
+            </label>
+            <label class="field">
+              <span>Endpoint ID</span>
+              <input id="importEndpoint" type="text" placeholder="ep-user-export">
+            </label>
+            <label class="field">
+              <span>Test ID</span>
+              <input id="importTest" type="text" placeholder="test-...">
+            </label>
+            <button id="importCaido" type="button">Import History</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="command-grid secondary">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>AI Governance</h2>
+              <p>Autonomy level, agent role coverage, proof gates, and data governance status.</p>
+            </div>
+          </div>
+          <div id="governanceStatus" class="tool-status"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Safety Policy</h2>
+              <p>Executor allowlist, forbidden paths, allowed methods, and rate limit.</p>
+            </div>
+          </div>
+          <pre id="safetyPolicy" class="code-panel">loading</pre>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Report Lifecycle</h2>
+              <p>Drafts, submit gates, triage, accepted state, retest date, and bounty value.</p>
+            </div>
+          </div>
+          <div class="mini-form inline">
+            <input id="draftTestId" type="text" placeholder="test id">
+            <input id="draftTitle" type="text" placeholder="report title">
+            <button id="createDraft" type="button">Create Draft</button>
+          </div>
+          <div id="reportList" class="report-list"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="/command.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.hunterflowx/schemas/graph_state.schema.json",
+  "title": "Hunterflowx Graph State",
+  "type": "object",
+  "required": ["version", "engagement_id", "generated_at", "nodes", "edges", "metrics"],
+  "additionalProperties": true,
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "engagement_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nodes": {
+      "type": "array"
+    },
+    "edges": {
+      "type": "array"
+    },
+    "metrics": {
+      "type": "object"
+    }
+  }
+}
