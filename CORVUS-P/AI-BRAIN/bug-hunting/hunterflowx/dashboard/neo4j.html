@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neo4j Attack Graph</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="neo4j-page">
+  <div class="app-shell">
+    <header class="topbar graph-topbar">
+      <div class="brand">
+        <div class="brand-kicker">Bug bounty workflow</div>
+        <h1>Neo4j Attack Graph</h1>
+        <div class="meta-line" id="graphMeta">loading attack graph</div>
+      </div>
+      <div class="topbar-actions">
+        <nav class="page-nav" aria-label="Dashboard pages">
+          <a href="/">Overview</a>
+          <a href="/neo4j" class="active">Neo4j Graph</a>
+          <a href="/command">Command Center</a>
+        </nav>
+        <label class="field">
+          <span>Engagement</span>
+          <select id="engagementSelect"></select>
+        </label>
+        <button id="refreshButton" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main class="neo4j-shell">
+      <section class="graph-toolbar panel">
+        <div class="toolbar-block">
+          <div class="toolbar-title">Canonical Chain</div>
+          <div class="toolbar-chain" id="stageStrip"></div>
+        </div>
+        <div class="toolbar-metrics" id="graphMetrics"></div>
+      </section>
+
+      <section class="graph-workspace">
+        <aside class="graph-sidebar panel">
+          <div class="panel-header">
+            <div>
+              <h2>Graph Control</h2>
+              <p>Filter stages, search nodes, and focus one attack path.</p>
+            </div>
+          </div>
+          <div class="graph-controls">
+            <label class="field">
+              <span>Search graph</span>
+              <input id="graphSearch" type="search" placeholder="endpoint, angle, evidence, status..." autocomplete="off">
+            </label>
+            <label class="check-row">
+              <input id="pathOnly" type="checkbox">
+              <span>Show selected path only</span>
+            </label>
+            <div>
+              <div class="control-label">Stages</div>
+              <div class="stage-filter-list" id="stageFilters"></div>
+            </div>
+          </div>
+          <div class="mini-header">
+            <h3>Attack Paths</h3>
+            <span id="pathCount">0 paths</span>
+          </div>
+          <div class="graph-path-list" id="graphPathList"></div>
+        </aside>
+
+        <section class="graph-main panel">
+          <div class="graph-main-header">
+            <div>
+              <h2>Wide Graph Workspace</h2>
+              <p>Explore the full source-to-finding chain without compressing the graph into the operations dashboard.</p>
+            </div>
+            <div class="neo4j-actions">
+              <span class="count-pill" id="neo4jStatus">Neo4j optional</span>
+              <a class="link-button" id="cypherLink" href="/api/neo4j/cypher" target="_blank" rel="noreferrer">Open Cypher</a>
+            </div>
+          </div>
+          <div class="neo4j-canvas" id="neo4jCanvas"></div>
+        </section>
+
+        <aside class="graph-inspector panel">
+          <div class="panel-header">
+            <div>
+              <h2>Inspector</h2>
+              <p>Selected node, path, and export details.</p>
+            </div>
+          </div>
+          <div id="graphInspector" class="inspector-body">
+            <div class="empty">Select a node or path to inspect it.</div>
+          </div>
+          <div class="cypher-box">
+            <div class="mini-header">
+              <h3>Cypher Export</h3>
+              <button id="copyCypher" type="button">Copy</button>
+            </div>
+            <textarea id="cypherPreview" readonly spellcheck="false"></textarea>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="/neo4j.js"></script>
+</body>
+</html>

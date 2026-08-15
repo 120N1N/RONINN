@@ -1,0 +1,8 @@
+{"id":"evt-demo-001","ts":"2026-05-18T00:00:00+07:00","engagement_id":"demo-target","actor":"operator","type":"scope_loaded","notes":"Demo scope loaded"}
+{"id":"evt-demo-002","ts":"2026-05-18T00:01:00+07:00","engagement_id":"demo-target","actor":"ai-mapper","type":"asset_added","asset_id":"asset-demo","host":"app.example.com","status":"mapped_only"}
+{"id":"evt-demo-003","ts":"2026-05-18T00:02:00+07:00","engagement_id":"demo-target","actor":"ai-mapper","type":"endpoint_discovered","asset_id":"asset-demo","endpoint_id":"ep-post-login","method":"POST","path":"/login","source":"manual"}
+{"id":"evt-demo-004","ts":"2026-05-18T00:03:00+07:00","engagement_id":"demo-target","actor":"ai-mapper","type":"param_discovered","endpoint_id":"ep-post-login","param":"email","param_location":"body"}
+{"id":"evt-demo-005","ts":"2026-05-18T00:04:00+07:00","engagement_id":"demo-target","actor":"ai-hunter","type":"loop_started","loop_id":"loop-sqli-login","endpoint_id":"ep-post-login","bug_class":"SQLi","current_phase":"retest","loop_state":"running"}
+{"id":"evt-demo-006","ts":"2026-05-18T00:05:00+07:00","engagement_id":"demo-target","actor":"ai-hunter","type":"test_started","loop_id":"loop-sqli-login","test_id":"SQLI-001","endpoint_id":"ep-post-login","bug_class":"SQLi","role":"unauthenticated","expected_signal":"SQL error, boolean difference, auth bypass, or time delay"}
+{"id":"evt-demo-007","ts":"2026-05-18T00:06:00+07:00","engagement_id":"demo-target","actor":"ai-validator","type":"gap_found","loop_id":"loop-sqli-login","test_id":"SQLI-001","status":"inconclusive","reason":"No Burp response saved yet"}
+

@@ -1,0 +1,187 @@
+{
+  "version": "1.0.0",
+  "engagement_id": "demo/target-app",
+  "tasks": [
+    {
+      "id": "task-recon-001",
+      "stage": "recon",
+      "label": "Review current graph and coverage",
+      "command": [
+        "bbf",
+        "coverage"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "done",
+      "attempts": 1,
+      "blocked_reason": "",
+      "created_at": "2026-05-19T06:16:07.908671+07:00",
+      "updated_at": "2026-05-19T06:16:09.855765+07:00",
+      "source": "seed",
+      "meta": {},
+      "started_at": "2026-05-19T06:16:09.644919+07:00",
+      "returncode": 0,
+      "last_output": "engagement: demo-target-app\ntotal_assets: 0\ntotal_endpoints: 0\ntested_endpoints: 0\nnot_tested_endpoints: 0\nconfirmed_findings: 0\nfinding_candidates: 0\ninconclusive_tests: 0\nplanned_tests: 0\nplanned_angles: 0\ntested_angles: 0\ncreative_ideas: 0\nevidence_missing: 0\nevidence_quality_sufficient: 0\nevidence_quality_partial: 0\nevidence_quality_incomplete: 0\nevidence_quality_avg: 0\njudge_tests_total: 0\njudge_avg_score: 0\njudge_reportable: 0\njudge_candidate: 0\njudge_needs_evidence: 0\njudge_blocked: 0\njudge_rejected: 0\nsource_files_total: 0\nsource_files_complete: 0\nsource_files_partial: 0\nsource_files_incomplete: 0\nsource_reviews_missing: 0\nsource_critical_missing: 0\nsource_completeness_avg: 0\nrisk_endpoints_ranked: 0\nrisk_top_score: 0\nrisk_avg_score: 0\nrisk_priority_p0: 0\nrisk_priority_p1: 0\nrisk_priority_p2: 0\nrisk_priority_p3: 0\ndomain_profiles_total: 0\ndomain_checks_planned: 0\ndomain_checks_complete: 0\ndomain_checks_partial: 0\ndomain_checks_missing: 0\ndomain_depth_avg: 0\ndomain_wp_score: 0\ndomain_onprem_score: 0\ndomain_mobile_score: 0\nopen_gaps: 0\nactive_loops: 0\ndead_ends_without_decision: 0\n\nopen gaps:\n\nactive loops:\n",
+      "finished_at": "2026-05-19T06:16:09.855717+07:00"
+    },
+    {
+      "id": "task-source-read-001",
+      "stage": "source-read",
+      "label": "Verify one-file-at-a-time source coverage",
+      "command": [
+        "bbf",
+        "source-verify",
+        "--queue-missing"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "blocked",
+      "attempts": 1,
+      "blocked_reason": "command exited 1",
+      "created_at": "2026-05-19T06:16:07.914547+07:00",
+      "updated_at": "2026-05-19T06:20:10.124039+07:00",
+      "source": "seed",
+      "meta": {},
+      "started_at": "2026-05-19T06:20:00.991340+07:00",
+      "returncode": 1,
+      "last_output": "\nmissing --source-root and no source/current directory exists\n",
+      "finished_at": "2026-05-19T06:20:01.251695+07:00"
+    },
+    {
+      "id": "task-map-endpoint-001",
+      "stage": "map-endpoint",
+      "label": "Prioritize mapped endpoints",
+      "command": [
+        "bbf",
+        "risk-prioritize",
+        "--limit",
+        "25"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "queued",
+      "attempts": 0,
+      "blocked_reason": "",
+      "created_at": "2026-05-19T06:16:07.916104+07:00",
+      "updated_at": "2026-05-19T06:16:07.916115+07:00",
+      "source": "seed",
+      "meta": {}
+    },
+    {
+      "id": "task-angle-plan-001",
+      "stage": "angle-plan",
+      "label": "Generate full multi-angle plan for selected endpoint",
+      "command": [
+        "bbf",
+        "angle-plan",
+        "full"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "blocked",
+      "attempts": 0,
+      "blocked_reason": "select endpoint/method/path before running",
+      "created_at": "2026-05-19T06:16:07.917199+07:00",
+      "updated_at": "2026-05-19T06:16:07.917212+07:00",
+      "source": "seed",
+      "meta": {}
+    },
+    {
+      "id": "task-angle-exec-001",
+      "stage": "angle-exec",
+      "label": "Execute approved endpoint angle through Caido",
+      "command": [
+        "bbf",
+        "angle-exec",
+        "--transport",
+        "caido",
+        "--allow-active"
+      ],
+      "active": true,
+      "approval": "pending",
+      "status": "blocked",
+      "attempts": 0,
+      "blocked_reason": "requires endpoint, headers, scope policy, and explicit approval",
+      "created_at": "2026-05-19T06:16:07.918735+07:00",
+      "updated_at": "2026-05-19T06:16:07.918745+07:00",
+      "source": "seed",
+      "meta": {}
+    },
+    {
+      "id": "task-evidence-score-001",
+      "stage": "evidence-score",
+      "label": "Score all available evidence packages",
+      "command": [
+        "bbf",
+        "evidence-score",
+        "--all"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "queued",
+      "attempts": 0,
+      "blocked_reason": "",
+      "created_at": "2026-05-19T06:16:07.927494+07:00",
+      "updated_at": "2026-05-19T06:16:07.927528+07:00",
+      "source": "seed",
+      "meta": {}
+    },
+    {
+      "id": "task-judge-001",
+      "stage": "judge",
+      "label": "Judge evidence reportability",
+      "command": [
+        "bbf",
+        "judge",
+        "--all"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "queued",
+      "attempts": 0,
+      "blocked_reason": "",
+      "created_at": "2026-05-19T06:16:07.928973+07:00",
+      "updated_at": "2026-05-19T06:16:07.928982+07:00",
+      "source": "seed",
+      "meta": {}
+    },
+    {
+      "id": "task-fresh-repro-001",
+      "stage": "fresh-repro",
+      "label": "Fresh repro gate for candidate/reportable tests",
+      "command": [
+        "bbf",
+        "fresh-repro"
+      ],
+      "active": true,
+      "approval": "pending",
+      "status": "blocked",
+      "attempts": 0,
+      "blocked_reason": "requires test id and fresh auth headers",
+      "created_at": "2026-05-19T06:16:07.930025+07:00",
+      "updated_at": "2026-05-19T06:16:07.930034+07:00",
+      "source": "seed",
+      "meta": {}
+    },
+    {
+      "id": "task-report-001",
+      "stage": "report",
+      "label": "Review report lifecycle and missing proof",
+      "command": [
+        "bbf",
+        "report-lifecycle",
+        "list"
+      ],
+      "active": false,
+      "approval": "not_required",
+      "status": "queued",
+      "attempts": 0,
+      "blocked_reason": "",
+      "created_at": "2026-05-19T06:16:07.947629+07:00",
+      "updated_at": "2026-05-19T06:16:07.947669+07:00",
+      "source": "seed",
+      "meta": {}
+    }
+  ],
+  "updated_at": "2026-05-19T06:20:10.124186+07:00"
+}

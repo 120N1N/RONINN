@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "mode": "enforce",
+  "max_rps": 10,
+  "allow_hosts": [],
+  "allow_schemes": [
+    "https",
+    "http"
+  ],
+  "allow_methods": [
+    "GET",
+    "HEAD",
+    "OPTIONS",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE"
+  ],
+  "forbidden_path_patterns": [
+    "*/logout*",
+    "*/delete-account*",
+    "*/billing/charge*",
+    "*/payments/capture*",
+    "*/admin/destroy*"
+  ],
+  "active_testing_requires_approval": true,
+  "notes": [
+    "Fill allow_hosts before live testing.",
+    "Keep max_rps at or below the program rules.",
+    "Use owned accounts and non-destructive payloads only."
+  ],
+  "generated_at": "2026-05-19T06:15:46.699171+07:00"
+}

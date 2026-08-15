@@ -1,0 +1,10 @@
+{
+    "iteration": 1,
+    "learned_rules": {
+        "general": [
+            "Jika confidence score dibawah 0.70, tetapkan 'MANUAL_REVIEW_REQUIRED' karena ini biasanya menyebabkan False Positives."
+        ]
+    },
+    "refusal_counts": 0,
+    "history": []
+}

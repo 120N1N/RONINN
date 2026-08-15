@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CMD="${1:-help}"
+shift || true
+
+case "$CMD" in
+  init)
+    python3 "$ROOT/scripts/init_engagement.py" "$@"
+    ;;
+  event)
+    python3 "$ROOT/scripts/add_event.py" "$@"
+    ;;
+  build)
+    python3 "$ROOT/scripts/build_graph.py" "$@"
+    ;;
+  coverage)
+    python3 "$ROOT/scripts/check_coverage.py" "$@"
+    ;;
+  dashboard)
+    python3 "$ROOT/scripts/serve_dashboard.py" "$@"
+    ;;
+  import-reconfw|reconfw-import)
+    python3 "$ROOT/scripts/import_reconfw.py" "$@"
+    ;;
+  pentest-card|card)
+    python3 "$ROOT/scripts/pentest_card.py" "$@"
+    ;;
+  angle-plan|multi-angle)
+    python3 "$ROOT/scripts/angle_plan.py" "$@"
+    ;;
+  angle-exec|validate-angle)
+    python3 "$ROOT/scripts/angle_exec.py" "$@"
+    ;;
+  queue|run-queue|command-center)
+    python3 "$ROOT/scripts/run_queue.py" "$@"
+    ;;
+  ai-governance|governance|autonomy)
+    python3 "$ROOT/scripts/ai_governance.py" "$@"
+    ;;
+  attack-path-review|path-review|xpat)
+    python3 "$ROOT/scripts/attack_path_review.py" "$@"
+    ;;
+  caido|caido-bridge)
+    python3 "$ROOT/scripts/caido_bridge.py" "$@"
+    ;;
+  fresh-repro|replay-gate)
+    python3 "$ROOT/scripts/fresh_repro.py" "$@"
+    ;;
+  report-lifecycle|reports)
+    python3 "$ROOT/scripts/report_lifecycle.py" "$@"
+    ;;
+  safety|policy)
+    python3 "$ROOT/scripts/safety_policy.py" "$@"
+    ;;
+  evidence-score|score-evidence)
+    python3 "$ROOT/scripts/evidence_score.py" "$@"
+    ;;
+  judge|evidence-judge)
+    python3 "$ROOT/scripts/evidence_judge.py" "$@"
+    ;;
+  source-verify|source-completeness)
+    python3 "$ROOT/scripts/source_verify.py" "$@"
+    ;;
+  risk-prioritize|prioritize|priority)
+    python3 "$ROOT/scripts/risk_prioritize.py" "$@"
+    ;;
+  domain-plan)
+    python3 "$ROOT/scripts/domain_depth.py" plan "$@"
+    ;;
+  wp-plan)
+    python3 "$ROOT/scripts/domain_depth.py" plan wp "$@"
+    ;;
+  onprem-plan|source-product-plan)
+    python3 "$ROOT/scripts/domain_depth.py" plan onprem "$@"
+    ;;
+  mobile-plan)
+    python3 "$ROOT/scripts/domain_depth.py" plan mobile "$@"
+    ;;
+  domain-verify|domain-depth)
+    python3 "$ROOT/scripts/domain_depth.py" verify "$@"
+    ;;
+  owasp-plan|a10-plan)
+    python3 "$ROOT/scripts/owasp_plan.py" "$@"
+    ;;
+  help|-h|--help)
+    cat <<'EOF'
+bbf - Hunterflowx
+
+Commands:
+  bbf init <program> <target>       Create a new engagement workspace
+  bbf event <type> [--key value]    Append one event to data/events.jsonl
+  bbf import-reconfw <workspace>    Import hunterweb/recon-framework outputs
+  bbf pentest-card <bug-class>      Create a source-grounded test card + event
+  bbf angle-plan <core|deep|creative|full>
+                                      Queue multi-angle + creative endpoint work
+  bbf angle-exec                    Execute queued angles via HTTP/browser/Burp/Caido
+  bbf queue seed|list|run-next      Run Queue / Command Center task control
+  bbf ai-governance check           Review autonomy, agent roles, data governance, proof gates
+  bbf attack-path-review --queue    Rank attack paths and create next-action tasks
+  bbf caido status|command|import   Caido CLI/native import bridge
+  bbf fresh-repro --test-id <id>    Fresh replay gate before reportability
+  bbf report-lifecycle list|draft   Report lifecycle and submit-proof gate
+  bbf safety init|status|check      Scope, allowlist, and rate safety policy
+  bbf evidence-score                Score baseline/control/mutation/read-back evidence
+  bbf judge                         Judge reportability of evidence packages
+  bbf source-verify                 Verify source files were read one by one
+  bbf risk-prioritize               Rank endpoints worth testing first
+  bbf domain-plan <wp|onprem|mobile|all>
+                                      Plan domain-specific depth gates
+  bbf wp-plan|onprem-plan|mobile-plan
+                                      Shortcut domain depth planners
+  bbf domain-verify                 Score domain-specific depth completion
+  bbf owasp-plan <web|api|both>     Generate A01-A10/API1-API10 test cards
+  bbf build                         Build data/graph_state.json
+  bbf coverage                      Print coverage/gap summary
+  bbf dashboard [--port 5173]       Serve multi-engagement local dashboard
+
+Run bbf commands from an engagement directory, except init.
+EOF
+    ;;
+  *)
+    echo "unknown command: $CMD" >&2
+    "$0" help
+    exit 2
+    ;;
+esac

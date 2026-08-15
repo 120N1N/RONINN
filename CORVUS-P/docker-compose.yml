@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: corvus_api
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./corvus_v3.db:/app/corvus_v3.db
+      - ./uploads:/app/uploads
+      - ./datasets:/app/datasets
+      - ./models:/app/models
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - USE_LOCAL_TASK_RUNNER=true
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://corvususer:corvuspass@db:5432/corvus
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    container_name: corvus_db
+    restart: always
+    environment:
+      POSTGRES_USER: corvususer
+      POSTGRES_PASSWORD: corvuspass
+      POSTGRES_DB: corvus
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: corvus_web
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+  flower:
+    image: mher/flower:0.9.7
+    container_name: corvus_flower
+    command: flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: corvus_redis
+    ports:
+      - "6379:6379"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: corvus_tunnel
+    restart: always
+    network_mode: "host"
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
+volumes:
+  pgdata:

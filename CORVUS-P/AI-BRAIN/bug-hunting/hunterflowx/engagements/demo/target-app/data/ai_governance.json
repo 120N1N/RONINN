@@ -1,0 +1,93 @@
+{
+  "version": "1.0.0",
+  "autonomy_levels": {
+    "passive_auto": {
+      "description": "Local analysis only; no live request or state change.",
+      "requires_approval": false,
+      "allowed_stages": [
+        "recon",
+        "source-read",
+        "map-endpoint",
+        "angle-plan",
+        "evidence-score",
+        "judge",
+        "report",
+        "governance",
+        "attack-path-review"
+      ]
+    },
+    "active_safe_auto": {
+      "description": "Low-risk active request inside allowlist; disabled by default.",
+      "requires_approval": true,
+      "allowed_methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ]
+    },
+    "active_requires_approval": {
+      "description": "Live testing, replay, browser/Burp/Caido execution, or fresh repro.",
+      "requires_approval": true,
+      "allowed_stages": [
+        "angle-exec",
+        "fresh-repro",
+        "active-test"
+      ]
+    },
+    "hard_deny": {
+      "description": "Out-of-scope, destructive, forbidden path, or policy violation.",
+      "requires_approval": false
+    }
+  },
+  "agent_roles": {
+    "coordinator": "Maintains global state, queue, blockers, and next action.",
+    "recon_agent": "Maps assets, endpoints, parameters, runtime observations, and external signals.",
+    "source_mapper": "Reads source one file at a time and links file -> flow -> endpoint.",
+    "attack_path_planner": "Builds hypotheses, chains, and ranked attack paths.",
+    "executor": "Runs approved tests through browser/Burp/Caido/http under safety policy.",
+    "validator": "Checks deterministic proof, controls, fresh repro, and repeatability.",
+    "evidence_judge": "Decides reportability from saved evidence, not model confidence.",
+    "report_reviewer": "Builds report, missing-proof gate, duplicate/status tracking.",
+    "safety_governor": "Enforces allowlist, forbidden paths, rate limit, and approval.",
+    "data_steward": "Controls retention, redaction, sanitized exports, and secret handling."
+  },
+  "validation": {
+    "hypothesis_is_not_finding": true,
+    "requires_external_validation": true,
+    "minimum_high_risk_reviewers": 4,
+    "reportable_requires": [
+      "baseline",
+      "mutation",
+      "negative_control",
+      "read_back",
+      "semantic_diff",
+      "fresh_repro",
+      "saved_evidence"
+    ]
+  },
+  "data_governance": {
+    "retention_days": 90,
+    "never_export_dirs": [
+      ".private"
+    ],
+    "default_exclude_globs": [
+      "*.pid",
+      "*.log",
+      "*.err.log",
+      ".dashboard*",
+      "*.sqlite",
+      "*.db"
+    ],
+    "redact_header_names": [
+      "authorization",
+      "cookie",
+      "set-cookie",
+      "x-csrf-token",
+      "x-api-key",
+      "api-key"
+    ],
+    "redact_key_regex": "(?i)(token|secret|password|passwd|authorization|cookie|session|csrf|api[_-]?key)",
+    "sanitize_export_text_only": true
+  },
+  "generated_at": "2026-05-19T06:58:28.568692+07:00"
+}
