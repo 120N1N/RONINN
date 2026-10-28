@@ -18,8 +18,8 @@ const AIBrainStatusBadge = ({ hasApiKey, aiBrainEnabled }) => {
   }
   
   return (
-    <div className="badge badge-success" style={{ padding: '0.4rem 0.8rem', borderRadius: '4px', backgroundColor: '#8b5cf620', color: '#8b5cf6', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', border: '1px solid #8b5cf6', fontWeight: 'bold' }}>
-      <span>🧠</span> AI-BRAIN: Aktif (HunterFlowX)
+    <div className="badge badge-success" style={{ padding: '0.4rem 0.8rem', borderRadius: '4px', backgroundColor: '#dc262620', color: '#ef4444', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', border: '1px solid #dc2626', fontWeight: 'bold' }}>
+      <span>🧠</span> AI-BRAIN: Aktif
     </div>
   );
 };

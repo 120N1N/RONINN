@@ -11,10 +11,18 @@ class VulnManager:
     lalu memuat kelas yang mewarisi BaseVulnScanner secara otomatis!
     """
     
+    # Modul yang dijalankan pada mode Quick (pemeriksaan esensial cepat tanpa fuzzing berat)
+    QUICK_MODULES = {
+        "a02_cryptographic_failures",
+        "a05_security_misconfiguration",
+        "a06_vulnerable_components",
+        "a09_security_logging"
+    }
+
     @classmethod
     def run_all_modules(cls, target_url: str, discovered_endpoints: List[str], scan_context: Dict[str, Any]) -> List[Dict]:
         all_findings = []
-        
+        mode = scan_context.get("mode", "normal").lower()
         current_dir = os.path.dirname(__file__)
         
         # Load semua file secara dinamis
@@ -22,15 +30,23 @@ class VulnManager:
             if filename.endswith(".py") and filename != "__init__.py" and filename != "base_scanner.py":
                 module_name = filename[:-3]
                 
+                # Filter modul berdasarkan mode scan
+                if mode == "quick" and module_name not in cls.QUICK_MODULES:
+                    continue
+                
                 # Import module
-                module = importlib.import_module(f"backend.core.VulnCore.{module_name}")
+                try:
+                    module = importlib.import_module(f"backend.core.VulnCore.{module_name}")
+                except Exception as imp_err:
+                    print(f"    [VulnCore] Gagal mengimpor modul {module_name}: {imp_err}")
+                    continue
                 
                 # Cari kelas yang meng-inherit dari BaseVulnScanner
                 for name, obj in inspect.getmembers(module, inspect.isclass):
                     if issubclass(obj, BaseVulnScanner) and obj is not BaseVulnScanner:
                         try:
                             # Eksekusi Module!!
-                            print(f"    [VulnCore] Menjalankan modul OWASP: {obj.OWASP_CODE} ({obj.CATEGORY_NAME})")
+                            print(f"    [VulnCore:{mode.upper()}] Menjalankan modul OWASP: {obj.OWASP_CODE} ({obj.CATEGORY_NAME})")
                             findings = obj.scan(target_url, discovered_endpoints, scan_context)
                             
                             # Standardisasi data sebelum disatukan

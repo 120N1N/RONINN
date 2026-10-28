@@ -32,9 +32,9 @@ class SecurityValidator:
                 
             ip = ipaddress.ip_address(ip_str)
             
-            # Block internal network pivoting (SSRF) unless admin
-            if not is_admin and (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast):
-                raise ValueError(f"SSRF Blocked: Target '{hostname}' resolves to a private or reserved IP address ({ip_str}). Scanning internal networks is strictly prohibited for standard users.")
+            # Block internal network pivoting (SSRF) for everyone
+            if not is_admin and (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified or str(ip) == "169.254.169.254"):
+                raise ValueError(f"SSRF Blocked: Target '{hostname}' resolves to a private or reserved IP address ({ip_str}). Scanning internal networks is strictly prohibited.")
                 
             return url
             

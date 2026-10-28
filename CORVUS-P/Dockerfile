@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     libpq-dev \
     gcc \
+    iputils-ping \
+    whois \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Go environment

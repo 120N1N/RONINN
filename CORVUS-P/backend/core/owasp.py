@@ -29,27 +29,30 @@ def map_to_owasp(vuln_type: str) -> dict:
     """Memetakan tipe kerentanan ke kategori OWASP Top 10 2021."""
     v = vuln_type.lower()
     
-    if any(x in v for x in ["broken_access", "idor", "traversal", "lfi", "rfi", "path", "admin", "panel"]):
+    # Prioritaskan A07 terlebih dahulu untuk kebocoran session/token di URL/cookie
+    if any(x in v for x in ["token_in_url", "session_in_url", "cookie_missing_httponly", "auth_failure", "login_failure"]):
+        cat = "auth_failures"
+    elif any(x in v for x in ["broken_access", "idor", "traversal", "lfi", "rfi", "admin_panel", "exposed_admin", "open_redirect", "redirect"]):
         cat = "broken_access_control"
     elif any(x in v for x in ["sql", "xss", "injection", "template", "graphql", "xxe"]):
         cat = "injection"
     elif any(x in v for x in ["crypto", "sensitive", "secret", "token", "key", "jwt", "information_disclosure", "exposure"]):
         cat = "cryptographic_failures"
-    elif any(x in v for x in ["design", "logic", "dos", "rate_limiting"]):
+    elif any(x in v for x in ["design", "logic", "dos", "rate_limiting", "predictable_resource"]):
         cat = "insecure_design"
-    elif any(x in v for x in ["config", "header", "clickjacking", "method", "cors", "hsts", "cookie"]):
+    elif any(x in v for x in ["config", "header", "clickjacking", "method", "cors", "hsts", "cookie", "directory_listing"]):
         cat = "security_misconfiguration"
     elif any(x in v for x in ["vulnerable", "outdated", "cve"]):
         cat = "vulnerable_outdated_components"
     elif any(x in v for x in ["auth", "login", "password", "brute", "session", "logout"]):
         cat = "auth_failures"
-    elif any(x in v for x in ["integrity", "deserialization"]):
+    elif any(x in v for x in ["integrity", "deserialization", "subresource_integrity"]):
         cat = "software_data_integrity_failures"
-    elif any(x in v for x in ["log", "monitor", "audit"]):
+    elif any(x in v for x in ["log", "monitor", "audit", "stacktrace"]):
         cat = "logging_monitoring_failures"
-    elif any(x in v for x in ["ssrf", "open_redirect", "redirect"]):
+    elif any(x in v for x in ["ssrf"]):
         cat = "ssrf"
     else:
-        cat = "security_misconfiguration" # Default better than injection
+        cat = "security_misconfiguration"
 
     return OWASP_CATEGORIES.get(cat, {"code": "A00:2021", "name": "General Vulnerability"})

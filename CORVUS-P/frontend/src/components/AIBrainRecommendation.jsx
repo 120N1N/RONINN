@@ -4,9 +4,9 @@ const AIBrainRecommendation = ({ recommendation, onAccept, onModify }) => {
   if (!recommendation) return null;
   
   return (
-    <div className="ai-brain-recommendation card pulse-border" style={{ backgroundColor: '#1a1a1a', border: '1px solid #8b5cf6', borderRadius: '8px', padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 0 15px rgba(139, 92, 246, 0.1)' }}>
+    <div className="ai-brain-recommendation card pulse-border" style={{ backgroundColor: '#1a1a1a', border: '1px solid #dc2626', borderRadius: '8px', padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 0 15px rgba(220, 38, 38, 0.15)' }}>
       <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#e5e7eb' }}>
-        🧠 Rekomendasi AI-BRAIN (HunterFlowX)
+        🧠 Rekomendasi AI-BRAIN
       </h3>
       
       <div className="recommendation-details" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

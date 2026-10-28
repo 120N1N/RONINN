@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   api:
@@ -12,7 +11,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./corvus_v3.db:/app/corvus_v3.db
+      - ./backend:/app/backend
       - ./uploads:/app/uploads
       - ./datasets:/app/datasets
       - ./models:/app/models
@@ -21,7 +20,7 @@ services:
       - PORT=8000
       - USE_LOCAL_TASK_RUNNER=true
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://corvususer:corvuspass@db:5432/corvus
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-corvususer}:${POSTGRES_PASSWORD:-corvus_s3cr3t_p4ss_2026}@db:5432/${POSTGRES_DB:-corvus}
     depends_on:
       - db
       - redis
@@ -31,9 +30,9 @@ services:
     container_name: corvus_db
     restart: always
     environment:
-      POSTGRES_USER: corvususer
-      POSTGRES_PASSWORD: corvuspass
-      POSTGRES_DB: corvus
+      POSTGRES_USER: ${POSTGRES_USER:-corvususer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-corvus_s3cr3t_p4ss_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-corvus}
     ports:
       - "5432:5432"
     volumes:

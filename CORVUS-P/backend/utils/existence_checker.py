@@ -40,9 +40,27 @@ class ExistenceChecker:
         if not location:
             return True
 
+        from backend.utils.asset_helper import is_static_asset
+
+        # Saring FP: File static asset (.js, .css, dll) TIDAK BOLEH dianggap sebagai exposed admin panel, IDOR, atau BOLA
+        if is_static_asset(location):
+            if v_type in ["exposed_admin_panel", "predictable_resource_id", "business_logic_flaw"] or "idor" in str(finding.get("description", "")).lower():
+                logger.info(f"[FP-FILTER] Filtered out static asset misclassified as IDOR/Admin: {location}")
+                return False
+
         # Setup baseline jika belum ada
         if not cls._cached_404_hash and cls._base_url:
             cls.setup_base(cls._base_url)
+
+        # 0. Validasi Pasif (Header, CORS, Cookie, HTTP Methods)
+        # Temuan ini valid berdasarkan response header, tidak boleh dibuang karena redirect atau status body
+        passive_types = [
+            "missing_security_headers", "clickjacking", "cors_misconfiguration",
+            "cookie_security", "dangerous_http_methods", "tls_weakness",
+            "rate_limiting", "dos_potential"
+        ]
+        if any(pt in v_type.lower() for pt in passive_types):
+            return True
 
         try:
             # 1. Cek Hash Konten (Deteksi Soft-404)

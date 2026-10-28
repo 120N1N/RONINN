@@ -3,6 +3,7 @@ import uuid
 from typing import List, Dict, Any, Optional
 from backend.core.VulnCore.base_scanner import BaseVulnScanner
 from backend.core.llm_providers import call_llm
+from backend.utils.asset_helper import is_static_asset
 
 class BusinessLogicAuditor(BaseVulnScanner):
     """
@@ -21,31 +22,34 @@ class BusinessLogicAuditor(BaseVulnScanner):
         if not discovered_endpoints:
             return []
 
-        # Hanya ambil 20 endpoint terpenting untuk analisis efisiensi token
-        important_keywords = ["api", "user", "admin", "checkout", "order", "profile", "cart", "pay", "auth", "secret"]
-        filtered_endpoints = []
-        for ep in discovered_endpoints:
-            if any(k in ep.lower() for k in important_keywords):
-                filtered_endpoints.append(ep)
+        # Hanya gunakan endpoint API/dinamis, buang semua file statis (.js, .css, images, dll)
+        dynamic_endpoints = [ep for ep in discovered_endpoints if not is_static_asset(ep)]
+        if not dynamic_endpoints:
+            return []
+
+        # Saring hanya endpoint yang benar-benar menyerupai API atau aksi logika bisnis dinamis
+        api_keywords = ["/api/", "/v1/", "/v2/", "/auth/", "/user/", "/admin/", "/checkout", "/order", "/profile", "/cart", "/graphql", "/rest/"]
+        filtered_endpoints = [
+            ep for ep in dynamic_endpoints 
+            if any(k in ep.lower() for k in api_keywords) or ("?" in ep and any(p in ep.lower() for p in ["id=", "user", "account", "token", "role"]))
+        ]
         
-        # Jika tidak ada yg menarik, ambil 10 endpoint pertama
+        # JIKA TIDAK ADA endpoint API nyata, JANGAN panggil LLM untuk mencegah halusinasi rute palsu!
         if not filtered_endpoints:
-            filtered_endpoints = discovered_endpoints[:10]
-        else:
-            filtered_endpoints = filtered_endpoints[:20]
+            return []
+
+        filtered_endpoints = filtered_endpoints[:15]
 
         try:
-            decrypted_key = None
             prompt = cls._build_hunting_prompt(target_url, filtered_endpoints)
             messages = [
-                {"role": "system", "content": "Anda adalah Senior Penetration Tester spesialis Business Logic Vulnerabilities (OWASP API Security)."},
+                {"role": "system", "content": "Anda adalah Senior Penetration Tester spesialis Business Logic Vulnerabilities (OWASP API Security). Bersikaplah objektif dan kritis."},
                 {"role": "user", "content": prompt}
             ]
             
-            resp = call_llm(messages, target_ai="gemini")
-            
+            resp = call_llm(messages, target_ai="auto")
             content = resp.get("result", "")
-            return cls._parse_ai_findings(content, target_url)
+            return cls._parse_ai_findings(content, target_url, valid_endpoints=filtered_endpoints)
         except Exception as e:
             print(f"    [VulnCore BusinessLogic] Error: {str(e)}")
             return []
@@ -55,32 +59,37 @@ class BusinessLogicAuditor(BaseVulnScanner):
         eps_str = "\n".join([f"- {ep}" for ep in endpoints])
         
         return f"""
-Berikut adalah daftar endpoint/Rute API yang berhasil dipetakan dari target: {base_url}
+Berikut adalah daftar rute API nyata yang berhasil dipetakan dari target: {base_url}
 
 {eps_str}
 
 TUGAS ANDA:
-Sebagai Hacker Top Tier, analisis daftar endpoint di atas. Temukan 1 hingga 3 titik yang paling rentan terhadap:
-1. BOLA / IDOR (Broken Object Level Authorization - misal: mengakses ID pesanan orang lain).
-2. BFLA (Broken Function Level Authorization - misal: endpoint admin yang terekspos).
-3. Mass Assignment (misal: mengirim parameter `is_admin=true` pada endpoint update profile).
+Evaluasi secara kritis apakah daftar rute nyata di atas menunjukkan pola arsitektur yang berpotensi memiliki celah logika:
+1. BOLA / IDOR (HANYA jika rute secara nyata memiliki identifier objek/pengguna).
+2. BFLA (HANYA jika rute administratif terekspos tanpa kontrol hak akses).
+3. Mass Assignment (HANYA jika rute modifikasi entitas menerima input tidak terbatas).
 
-Bentuk hasil analisa dalam JSON Array baku, HANYA JSON tanpa teks lain!
+ATURAN WAJIB & ANTI-HALUSINASI:
+- DILARANG MENGARANG atau menambahkan endpoint baru yang TIDAK ADA dalam daftar di atas!
+- DILARANG menandai file statis (.js, .css, images, dll).
+- JIKA TIDAK ADA indikasi kerentanan yang nyata pada daftar di atas, KEMBALIKAN ARRAY KOSONG `[]`. Jangan pernah mengarang celah jika tidak ada bukti kuat!
+
+Bentuk hasil analisa dalam JSON Array baku (HANYA JSON tanpa teks pengantar):
 Skema JSON:
 [
   {{
     "type": "business_logic_flaw",
     "subtype": "[BOLA | BFLA | Mass Assignment]",
     "severity": "HIGH",
-    "endpoint": "URL rute yang rentan",
-    "description": "Jelaskan dengan skenario peretasan bagaimana celah ini berpotensi dieksploitasi menurut teori logika bisnis.",
-    "remediation": "Cara memperbaikinya berdasarkan best practices OWASP."
+    "endpoint": "URL PERSIS dari daftar di atas yang dianalisis",
+    "description": "Penjelasan ancaman logika bisnis berdasarkan endpoint tersebut.",
+    "remediation": "Cara mitigasi sesuai OWASP API Security."
   }}
 ]
 """
 
     @classmethod
-    def _parse_ai_findings(cls, content: str, base_url: str) -> List[Dict]:
+    def _parse_ai_findings(cls, content: str, base_url: str, valid_endpoints: List[str] = None) -> List[Dict]:
         findings = []
         if not content: return findings
         
@@ -93,22 +102,54 @@ Skema JSON:
                 return []
                 
             ai_data = json.loads(json_str)
+            if not isinstance(ai_data, list):
+                return []
+
+            valid_set = set(valid_endpoints or [])
+            import requests
+
             for item in ai_data:
+                target_ep = item.get('endpoint', '')
+                if not target_ep:
+                    continue
+
+                # ANTI-HALUSINASI 1: Endpoint HARUS ada dalam daftar yang dikirim ke LLM
+                # Jika LLM mengarang rute baru yang tidak pernah ditemukan, tolak!
+                if valid_set and target_ep not in valid_set:
+                    # Cek toleransi trailing slash
+                    if target_ep.rstrip("/") not in {ve.rstrip("/") for ve in valid_set}:
+                        print(f"    [VulnCore BusinessLogic] [FP-FILTER] Rejected hallucinated endpoint from LLM: {target_ep}")
+                        continue
+
+                # ANTI-HALUSINASI 2: Abaikan jika file statis
+                if is_static_asset(target_ep):
+                    continue
+
+                # ANTI-HALUSINASI 3: Validasi aktif dengan HTTP request
+                # Jika endpoint mengembalikan 404 Not Found atau gagal koneksi, buang!
+                try:
+                    probe_resp = requests.head(target_ep, timeout=4, verify=False, allow_redirects=True)
+                    if probe_resp.status_code == 404:
+                        print(f"    [VulnCore BusinessLogic] [FP-FILTER] Discarded non-existent endpoint (404): {target_ep}")
+                        continue
+                except Exception:
+                    pass
+
                 finding = {
                     "id": f"COR-{uuid.uuid4().hex[:6].upper()}",
                     "name": f"Business Logic: {item.get('subtype', 'Anomaly')}",
                     "type": item.get('type', 'business_logic_flaw'),
                     "severity": item.get('severity', 'HIGH').upper(),
-                    "endpoint": item.get('endpoint', base_url),
-                    "location": item.get('endpoint', base_url),
+                    "endpoint": target_ep,
+                    "location": target_ep,
                     "cvss": 7.5 if item.get('severity', 'HIGH').upper() == 'HIGH' else 5.5,
                     "description": item.get('description', 'Potensi kelemahan logika aplikasi terdeteksi oleh AI-Brain.'),
                     "remediation": item.get('remediation', 'Terapkan validasi dan RBAC (Role Based Access Control) yang ketat.'),
-                    "points": ["AI-Brain Simulated Threat Modeling", "Potensi kerentanan pada alur proses bisnis."],
+                    "points": ["AI-Brain Grounded Threat Modeling", "Diverifikasi terhadap rute aktif target."],
                     "source": "VulnCore-BusinessLogicAuditor"
                 }
                 findings.append(finding)
-        except Exception:
-            pass
+        except Exception as parse_e:
+            print(f"    [VulnCore BusinessLogic] Parse error: {parse_e}")
             
         return findings

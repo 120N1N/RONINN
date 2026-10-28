@@ -3,17 +3,264 @@
 @tailwind utilities;
 
 :root {
+  --app-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --app-font-scale: 1rem;
+
+  /* Default Dark Cyberpunk Theme */
+  --bg-app: #0c0c0e;
+  --bg-surface: #141418;
+  --bg-card: #18181f;
+  --bg-card-hover: #1e1e27;
+  --bg-input: #121217;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-subtle: rgba(220, 38, 38, 0.2);
+  --border-hover: rgba(220, 38, 38, 0.5);
+  --border-card: rgba(255, 255, 255, 0.07);
+  --navbar-bg: rgba(12, 12, 14, 0.88);
+  --table-head-bg: rgba(0, 0, 0, 0.45);
+  --table-row-hover: rgba(220, 38, 38, 0.06);
+  --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --app-scale-factor: 1;
   color-scheme: dark;
+}
+
+/* Scalable Navbar Typography synced directly to --app-scale-factor */
+.nav-scalable-text {
+  font-size: calc(13px * var(--app-scale-factor, 1)) !important;
+}
+
+.nav-scalable-button {
+  font-size: calc(11px * var(--app-scale-factor, 1)) !important;
+}
+
+.nav-scalable-sub {
+  font-size: calc(10px * var(--app-scale-factor, 1)) !important;
+}
+
+html.light {
+  /* Clean Slate Light Theme */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fafbfc;
+  --bg-input: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --border-subtle: #e2e8f0;
+  --border-hover: rgba(220, 38, 38, 0.45);
+  --border-card: #e2e8f0;
+  --navbar-bg: rgba(255, 255, 255, 0.94);
+  --table-head-bg: #f1f5f9;
+  --table-row-hover: rgba(220, 38, 38, 0.03);
+  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  color-scheme: light;
+}
+
+
+/* View Transition API for Cinematic Slow & Smooth Theme Crossfade */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.75s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: theme-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: theme-fade-in;
+}
+
+@keyframes theme-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes theme-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Comprehensive Global Smooth Theme Transitioning Class */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *:before,
+html.theme-transitioning *:after {
+  transition: background-color 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important,
+              border-color 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important,
+              color 0.65s cubic-bezier(0.22, 1, 0.36, 1) !important,
+              box-shadow 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important,
+              fill 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important,
+              stroke 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  transition-delay: 0s !important;
+}
+
+html {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
-  background-color: #0f0f0f;
-  color: #f0f0f0;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
-  font-family: 'Inter', sans-serif;
+  position: relative;
+  font-family: var(--app-font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.75s cubic-bezier(0.22, 1, 0.36, 1), 
+              color 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Allow horizontal scrolling ONLY within isolated scroll containers (e.g. tables) */
+.overflow-x-auto {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  overscroll-behavior-x: contain !important;
+}
+
+
+/* Card & Element Styling for Light & Dark */
+.corvus-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(12px);
+  transition: background-color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              color 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.corvus-card:hover {
+  border-color: var(--border-hover);
+}
+
+html.light .corvus-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+}
+
+html.light .corvus-card:hover {
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+/* Light mode heading & text visibility fixes */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  color: #0f172a;
+}
+
+/* Light mode text contrast fixes outside terminal */
+html.light .text-white:not([class*="bg-"]):not([class*="bg-"] *):not(button):not(button *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-blue-600 *):not(.bg-emerald-600 *):not(button.bg-red-600):not(.bg-\[\#b71c1c\]):not(.bg-\[\#b71c1c\] *):not(.bg-\[\#e53935\]):not(.bg-\[\#e53935\] *):not(.bg-\[\#fb8c00\]):not(.bg-\[\#fb8c00\] *):not(.bg-\[\#2196f3\]):not(.bg-\[\#2196f3\] *):not(.bg-\[\#050505\] *):not(pre *) {
+  color: #0f172a;
+}
+
+html.light .text-slate-300:not(.bg-\[\#050505\] *):not(pre *) {
+  color: #334155;
+}
+
+html.light .text-slate-400:not(.bg-\[\#050505\] *):not(pre *) {
+  color: #475569;
+}
+
+html.light .text-slate-500:not(.bg-\[\#050505\] *):not(pre *) {
+  color: #64748b;
+}
+
+html.light .text-slate-600:not(.bg-\[\#050505\] *):not(pre *) {
+  color: #475569;
+}
+
+/* Live Terminal preservation in Light Mode */
+html.light .bg-\[\#050505\] {
+  background-color: #050505 !important;
+  border-color: #1e293b !important;
+}
+
+html.light .bg-\[\#050505\] .text-white {
+  color: #ffffff !important;
+}
+
+html.light .bg-\[\#050505\] .text-slate-200,
+html.light .bg-\[\#050505\] .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+html.light .bg-\[\#050505\] .text-slate-600 {
+  color: #64748b !important;
+}
+
+/* Light mode input & select fields */
+html.light input[type="text"],
+html.light input[type="password"],
+html.light input[type="email"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light input[type="text"]::placeholder,
+html.light input[type="password"]::placeholder,
+html.light input[type="email"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light select {
+  background-color: transparent !important;
+  color: #dc2626 !important;
+}
+
+html.light select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Light mode table headers & borders */
+html.light thead {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light thead th {
+  color: #475569 !important;
+}
+
+html.light tbody tr:hover {
+  background-color: rgba(220, 38, 38, 0.03) !important;
+}
+
+html.light tbody td {
+  border-color: #f1f5f9 !important;
+}
+
+/* Light mode code endpoint pill */
+html.light code:not(pre code) {
+  background-color: #f1f5f9 !important;
+  color: #dc2626 !important;
+  border-color: #e2e8f0 !important;
 }
 
 /* Custom Scrollbar */
@@ -22,13 +269,18 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f0f0f;
+  background: var(--bg-app);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
+  background: #33333e;
   border-radius: 10px;
 }
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #c62828;
 }

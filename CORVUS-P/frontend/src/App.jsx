@@ -16,20 +16,9 @@ import NotFoundPage from './pages/NotFoundPage';
 // Components
 import Navbar from './components/Navbar';
 import DisclaimerPopup from './components/DisclaimerPopup';
+import { ThemeProvider } from './context/ThemeContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
-
-// --- CSS ANIMATIONS ---
-const styles = `
-.corvus-card {
-  background: #1a1a1a;
-  border: 1px solid rgba(198, 40, 40, 0.15);
-  backdrop-filter: blur(10px);
-}
-.corvus-card:hover {
-  border-color: rgba(198, 40, 40, 0.4);
-}
-`;
 
 function App() {
     const [user, setUser] = useState(null);
@@ -58,12 +47,16 @@ function App() {
     }, []);
 
     return (
-        <Router>
-            <style>{styles}</style>
-            <div className="min-h-screen text-slate-300 px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-10 selection:bg-red-600 selection:text-white relative overflow-hidden">
-                <DisclaimerPopup />
-                <Navbar user={user} onLogout={() => { localStorage.removeItem('corvus_token'); setUser(null); }} />
-                <main className="max-w-[1800px] 2xl:max-w-[2000px] mx-auto min-h-[70vh] relative">
+        <ThemeProvider>
+            <Router>
+                <div className="min-h-screen text-[var(--text-primary)] px-3 sm:px-5 md:px-8 py-4 sm:py-6 md:py-8 selection:bg-red-600 selection:text-white relative w-full max-w-full overflow-x-hidden transition-colors duration-300">
+                    <DisclaimerPopup />
+                <Navbar user={user} onLogout={() => { 
+                    localStorage.removeItem('corvus_token'); 
+                    localStorage.removeItem('corvus_active_scan_id'); 
+                    setUser(null); 
+                }} />
+                <main className="max-w-[1800px] 2xl:max-w-[2000px] w-full min-w-0 mx-auto min-h-[70vh] relative">
                     <Routes>
                         <Route path="/" element={<Dashboard user={user} />} />
                         <Route path="/reports" element={<ReportsPage />} />
@@ -89,6 +82,7 @@ function App() {
                 </footer>
             </div>
         </Router>
+    </ThemeProvider>
     );
 }
 

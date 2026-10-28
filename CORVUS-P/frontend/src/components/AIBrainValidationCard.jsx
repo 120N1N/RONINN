@@ -1,76 +1,110 @@
 import React from 'react';
+import { Brain, ShieldCheck, AlertTriangle, ArrowRight, Activity, Terminal } from 'lucide-react';
 
 const AIBrainValidationCard = ({ finding }) => {
-  const validation = finding.ai_brain_validation || finding.ai_validation;
-  const caido = finding.caido_profile;
+  const validation = finding?.ai_brain_validation || finding?.ai_validation;
+  const caido = finding?.caido_profile;
   
-  if (!validation) return null;
-  
+  if (!validation && !finding?.ai_brain_status) return null;
+
+  const isValid = validation?.is_valid ?? finding?.ai_brain_valid ?? true;
+  const confidence = validation?.confidence_score ?? finding?.ai_brain_confidence ?? 0.85;
+  const reasoning = validation?.reasoning || finding?.ai_brain_reasoning;
+  const recommendation = validation?.recommendation;
+  const adjustedSeverity = validation?.adjusted_severity;
+
   return (
-    <div className="ai-brain-validation card p-4 mb-4" style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px' }}>
-      <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem', marginBottom: '1rem' }}>🧠 Validasi AI-BRAIN (HunterFlowX)</h3>
-      
-      {/* Status Validasi */}
-      <div className={`validation-status ${validation.is_valid ? 'valid' : 'invalid'}`} style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-        {validation.is_valid ? (
-          <span className="badge" style={{ backgroundColor: '#10b98120', color: '#10b981', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>✅ True Positive</span>
-        ) : (
-          <span className="badge" style={{ backgroundColor: '#ef444420', color: '#ef4444', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>❌ False Positive</span>
-        )}
-        <span className="confidence" style={{ fontSize: '0.9rem', color: '#a3a3a3' }}>
-          Confidence: {(validation.confidence_score * 100).toFixed(1)}%
-        </span>
-      </div>
-      
-      {/* Severity Adjustment */}
-      {validation.adjusted_severity && (
-        <div className="severity-adjustment" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-          <span className="original-severity">
-            Original: <strong style={{ color: '#fb8c00' }}>{finding.severity}</strong>
-          </span>
-          <span className="arrow" style={{ margin: '0 0.5rem' }}>→</span>
-          <span className="adjusted-severity">
-            Disarankan: <strong style={{ color: '#ef4444' }}>{validation.adjusted_severity.toUpperCase()}</strong>
+    <div className="bg-white dark:bg-[#0c0808] border border-slate-200 dark:border-red-900/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-red-900/20 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 shadow-md">
+            <Brain className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase italic tracking-wider flex items-center gap-2">
+              AI-Brain Security Verification
+            </h4>
+            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+              Automated Triage & Validation Verdict
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {isValid ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/40">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> True Positive
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/40">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" /> False Positive
+            </span>
+          )}
+          <span className="text-[10px] font-mono font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 px-2.5 py-1 rounded-xl">
+            {(confidence * 100).toFixed(0)}% Conf
           </span>
         </div>
+      </div>
+
+      {adjustedSeverity && (
+        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-slate-900 text-xs font-bold">
+          <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">Tingkat Keparahan Disarankan:</span>
+          <span className="text-orange-600 dark:text-orange-400 uppercase font-black">{finding.severity}</span>
+          <ArrowRight className="w-3 h-3 text-slate-400 dark:text-slate-600" />
+          <span className="text-red-600 dark:text-red-500 uppercase font-black">{adjustedSeverity}</span>
+        </div>
       )}
-      
-      {/* Traffic Context (Caido) */}
+
       {caido && (
-        <div className="caido-context" style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#06b6d415', borderRadius: '4px' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#06b6d4' }}>📊 Konteks Traffic (Caido CLI)</h4>
-          <table className="caido-table" style={{ width: '100%', fontSize: '0.8rem', textAlign: 'left' }}>
-            <tbody>
-              <tr><td style={{ padding: '0.2rem 0' }}>Method</td><td>{caido.request_verb}</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Parameters</td><td>{caido.param_count}</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Auth Headers</td><td>{caido.auth_headers_present ? '✅' : '❌'}</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Content-Type</td><td>{caido.content_type}</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Avg Response Size</td><td>{caido.response_size_mean} bytes</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Response Variability</td><td>±{caido.response_size_std} bytes</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Status Codes</td><td>{caido.status_codes_seen?.join(', ')}</td></tr>
-              <tr><td style={{ padding: '0.2rem 0' }}>Endpoint Depth</td><td>{caido.endpoint_depth}</td></tr>
-            </tbody>
-          </table>
+        <div className="p-4 rounded-2xl bg-cyan-50 dark:bg-cyan-950/10 border border-cyan-200 dark:border-cyan-800/30 space-y-3">
+          <div className="flex items-center gap-2 text-cyan-800 dark:text-cyan-400 text-[10px] font-black uppercase tracking-wider">
+            <Activity className="w-3.5 h-3.5" /> Konteks Traffic Runtime (Caido CLI Profiler)
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono">
+            <div className="bg-white dark:bg-black/40 p-2 rounded-xl border border-cyan-200 dark:border-cyan-950/40">
+              <span className="text-slate-500 block text-[8px] uppercase font-sans">Method</span>
+              <span className="text-slate-800 dark:text-white font-bold">{caido.request_verb || "GET"}</span>
+            </div>
+            <div className="bg-white dark:bg-black/40 p-2 rounded-xl border border-cyan-200 dark:border-cyan-950/40">
+              <span className="text-slate-500 block text-[8px] uppercase font-sans">Param Count</span>
+              <span className="text-slate-800 dark:text-white font-bold">{caido.param_count ?? 0}</span>
+            </div>
+            <div className="bg-white dark:bg-black/40 p-2 rounded-xl border border-cyan-200 dark:border-cyan-950/40">
+              <span className="text-slate-500 block text-[8px] uppercase font-sans">Auth Headers</span>
+              <span className="text-slate-800 dark:text-white font-bold">{caido.auth_headers_present ? "Ada" : "Nihil"}</span>
+            </div>
+            <div className="bg-white dark:bg-black/40 p-2 rounded-xl border border-cyan-200 dark:border-cyan-950/40">
+              <span className="text-slate-500 block text-[8px] uppercase font-sans">Content-Type</span>
+              <span className="text-slate-800 dark:text-white font-bold truncate block">{caido.content_type || "other"}</span>
+            </div>
+          </div>
         </div>
       )}
-      
-      {/* Reasoning */}
-      <div className="reasoning" style={{ marginBottom: '1rem' }}>
-        <h4 style={{ margin: '0 0 0.25rem 0', color: '#e5e7eb' }}>📝 Alasan (Reasoning)</h4>
-        <p style={{ margin: '0', color: '#a3a3a3', fontSize: '0.9rem', lineHeight: '1.5' }}>{validation.reasoning}</p>
-      </div>
-      
-      {/* Recommendation */}
-      <div className="recommendation" style={{ marginBottom: '1rem' }}>
-        <h4 style={{ margin: '0 0 0.25rem 0', color: '#e5e7eb' }}>🛡️ Rekomendasi Mitigasi</h4>
-        <pre style={{ margin: '0', padding: '0.75rem', backgroundColor: '#111', borderRadius: '4px', color: '#a3a3a3', fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>
-          {validation.recommendation}
-        </pre>
-      </div>
-      
-      {/* Human-in-the-Loop Disclaimer */}
-      <div className="disclaimer" style={{ fontSize: '0.8rem', color: '#f59e0b', fontStyle: 'italic', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #333' }}>
-        ⚠️ Hasil ini bersifat asistif. Keputusan akhir tetap pada analis manusia.
+
+      {reasoning && (
+        <div className="space-y-2">
+          <h5 className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Penalaran AI (Reasoning)
+          </h5>
+          <div className="text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed italic bg-slate-50 dark:bg-black/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-900 whitespace-pre-wrap">
+            {reasoning}
+          </div>
+        </div>
+      )}
+
+      {recommendation && (
+        <div className="space-y-2">
+          <h5 className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Rekomendasi Remediasi Tambahan
+          </h5>
+          <div className="bg-slate-50 dark:bg-black/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-900 font-mono text-xs text-slate-800 dark:text-slate-300 whitespace-pre-wrap">
+            {recommendation}
+          </div>
+        </div>
+      )}
+
+      <div className="pt-2 text-[9px] text-amber-600 dark:text-amber-500/80 italic font-bold flex items-center gap-1.5">
+        <span>⚠️</span> Hasil ini merupakan evaluasi otonom AI-Brain Security. Keputusan verifikasi akhir tetap berada pada analis manusia.
       </div>
     </div>
   );

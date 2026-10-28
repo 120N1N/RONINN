@@ -19,28 +19,107 @@ Corvus is a sophisticated security orchestration platform designed for automated
 - **Validation**: Playwright/Requests (Agentic Fetcher)
 - **Custom**: JS Secret Extraction engine
 
-## Quick Start (Docker)
-1. Ensure you have Docker and Docker Compose installed.
-2. Clone the repository.
-3. Run the setup script:
+## Cara Menjalankan Aplikasi (Panduan Pemula)
+
+Aplikasi Corvus ini terbagi menjadi dua bagian utama:
+1. **Backend (API & Worker)**: Mesin utama yang bekerja di belakang layar untuk memproses data, database, dan pemindaian keamanan.
+2. **Frontend (Web)**: Tampilan antarmuka yang Anda lihat dan klik di browser.
+
+Anda bisa memilih **salah satu** dari dua cara di bawah ini untuk menyalakan aplikasi: **Cara Otomatis (Docker)** atau **Cara Manual (Standalone)**.
+
+---
+
+### Cara 1: Menjalankan Secara Otomatis dengan Docker (Sangat Direkomendasikan)
+Cara ini paling mudah karena Docker akan otomatis menyalakan Frontend, Backend, dan Database sekaligus di dalam "wadah" virtual. Anda tidak perlu repot menginstal komponen satu per satu.
+
+1. Pastikan aplikasi **Docker** dan **Docker Compose** sudah terinstal dan berjalan di komputer Anda.
+2. Buka terminal (Command Prompt/PowerShell/Bash) dan masuk ke folder tempat file ini berada.
+3. Nyalakan aplikasi sesuai sistem operasi Anda:
+   - **Bagi pengguna Linux / macOS / WSL**:
+     Jalankan script otomatis ini:
+     ```bash
+     bash setup.sh
+     ```
+   - **Bagi pengguna Windows (Manual Docker Compose)**:
+     Jalankan dua perintah ini secara berurutan:
+     ```bash
+     docker-compose up -d --build
+     docker-compose exec api alembic upgrade head || docker-compose exec api python migrate.py
+     ```
+4. **Selesai!** Anda bisa mengakses aplikasi melalui browser:
+   - Tampilan Web (Frontend): `http://localhost` (Docker menyetelnya di port 80)
+   - Dokumentasi API Backend: `http://localhost:8000/api/docs`
+
+---
+
+### Cara 2: Menjalankan Secara Manual (Standalone / Tanpa Docker)
+Gunakan cara ini jika Anda ingin memodifikasi kode (sebagai developer) atau sistem Anda tidak mendukung Docker. Anda harus menyalakan Backend dan Frontend di jendela terminal yang terpisah.
+
+#### A. Menyalakan Backend
+1. Pastikan **Python** sudah terinstal.
+2. Buka terminal dan install pustaka yang dibutuhkan: 
+   `pip install -r requirements.txt`
+3. (Opsional) Jalankan migrasi database jika diperlukan oleh sistem FastAPI.
+4. **Nyalakan Server API**: 
+   `python -m backend.app`
+5. **Nyalakan Celery Worker** (Buka **Terminal Baru**): 
+   `celery -A backend.queue.celery_app worker --loglevel=info`
+
+#### B. Menyalakan Frontend
+1. Pastikan **Node.js** sudah terinstal.
+2. Buka **Terminal Baru** dan masuk ke folder frontend: 
+   `cd frontend`
+3. Install package yang dibutuhkan: 
+   `npm install`
+4. Nyalakan server tampilan web: 
+   `npm run dev`
+5. Frontend biasanya bisa diakses di `http://localhost:5173` atau `http://localhost:3000` sesuai info di terminal.
+
+---
+
+### Cara Khusus: Menjalankan di VPS (Virtual Private Server) atau WSL
+Jika Anda ingin mengonlinekan Corvus di VPS (seperti Ubuntu/Debian di AWS, DigitalOcean, dll) atau menggunakan **WSL** di Windows, langkah-langkahnya pada dasarnya sama persis dengan **Cara 1 (Docker)**.
+
+**Langkah-langkah Komplit di VPS (Ubuntu/Debian) / WSL:**
+Cukup *copy-paste* perintah di bawah ini secara berurutan ke terminal Anda agar bebas error:
+
+1. **Update sistem dan install Git & Docker:**
    ```bash
-   ./setup.sh
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install git docker.io docker-compose -y
    ```
-4. Access the API documentation at: `http://localhost:8000/api/docs`
-5. Access the Frontend at: `http://localhost:3000`
 
-## Manual Setup
-If you want to run components individually:
+2. **Nyalakan layanan Docker dan cek versinya (Verifikasi):**
+   ```bash
+   sudo systemctl start docker
+   sudo systemctl enable docker
+   docker --version
+   docker-compose --version
+   ```
+   *(Pastikan tidak ada error dan versi Docker muncul di layar)*
 
-### Backend
-1. Install requirements: `pip install -r requirements.txt`
-2. Run database migrations (or let FastAPI auto-create).
-3. Start the server: `python -m backend.app`
-4. Start the worker: `celery -A backend.queue.celery_app worker --loglevel=info`
+3. **Unduh (clone) repository Corvus dan masuk ke foldernya:**
+   ```bash
+   git clone https://github.com/DRL-GITHUB/RONINN.git
+   cd RONINN/CORVUS-P
+   ```
+   *(Catatan: Sesuaikan link `git clone` dengan link repository asli Anda jika berbeda)*
 
-### Frontend
-1. Install dependencies: `cd frontend && npm install`
-2. Start dev server: `npm run dev`
+4. **Jalankan script instalasi otomatis:**
+   ```bash
+   bash setup.sh
+   ```
+
+5. **Selesai! Aplikasi sedang berjalan.** 
+   - **Di WSL:** Buka browser Windows Anda dan kunjungi `http://localhost`
+   - **Di VPS:** Buka browser dan kunjungi Alamat IP VPS Anda (contoh: `http://192.168.1.50`)
+
+**Tips Khusus Pengguna VPS (Cara Update):**
+Jika ada pembaruan kode terbaru, Anda tidak perlu menginstal ulang dari awal. Cukup jalankan script pembaruan yang sudah kami sediakan:
+```bash
+bash update_vps.sh
+```
+Script ini otomatis akan menarik kode baru, mengatur API Key bawaan (Dual-LLM), dan merestart server Anda dengan bersih.
 
 ## Ethical Use
 Corvus is intended for authorized security testing only. Scanning targets without explicit permission is illegal and unethical.

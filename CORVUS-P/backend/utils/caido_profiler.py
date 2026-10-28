@@ -71,17 +71,10 @@ class HeuristicProfiler(BaseProfiler):
         print("[*] HeuristicProfiler: Initiating passive endpoint heuristic profiling...")
         profile_data = {}
         
-        # Ensure we have at least a few default endpoints if list is empty
+        # Use base URL if endpoint list is empty (no fabricated fake routes)
         if not endpoints:
             base = target if target.startswith("http") else f"http://{target}"
-            endpoints = [
-                f"{base}/",
-                f"{base}/login",
-                f"{base}/api/v1/user/settings",
-                f"{base}/admin/dashboard",
-                f"{base}/search",
-                f"{base}/api/proxy"
-            ]
+            endpoints = [f"{base}/"]
 
         for url in endpoints:
             parsed = urlparse(url)

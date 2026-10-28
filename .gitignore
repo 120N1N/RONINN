@@ -1,0 +1,42 @@
+# Compressed Archives (GitHub rejects files > 100MB)
+*.tar.gz
+*.7z
+*.zip
+*.rar
+*.gz
+
+# Local databases and runtime
+*.db
+*.sqlite
+*.sqlite3
+corvus.db
+corvus_v3.db
+
+# Backup and local test directories
+CORVUS backup/
+CORVUSLOCAL/
+CORVUSTEST/
+CORVUS_UI_MOCKUP/
+
+# Environments and credentials
+.env
+.env.local
+.venv/
+venv/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node caches
+node_modules/
+dist/
+build/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

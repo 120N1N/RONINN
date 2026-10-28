@@ -2,7 +2,13 @@
 **/dist
 **/.git
 **/.env
-**/.pycache__
+**/__pycache__
+.pytest_cache/
 *.db
 uploads/
 tools_output/
+
+# Pelaku utama ukuran raksasa (Tambahkan ini):
+datasets/
+.agents/
+*.tar.gz

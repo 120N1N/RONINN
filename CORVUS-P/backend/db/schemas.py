@@ -51,6 +51,8 @@ class ScanResponse(BaseModel):
     progress: int
     current_step: str
     findings: List[Finding]
+    recon: Optional[dict] = None
+    ai_summary: Optional[dict] = None
     created_at: datetime
 
     class Config:

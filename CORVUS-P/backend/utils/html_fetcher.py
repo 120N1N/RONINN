@@ -5,18 +5,12 @@ from urllib.parse import urlparse
 
 def is_private_ip(ip_str):
     try:
-        # Check for IPv6 localhost and private ranges
         if ":" in ip_str:
             if ip_str == "::1" or ip_str.startswith("fc") or ip_str.startswith("fd") or ip_str.startswith("fe8"):
                 return True
             return False
             
         ip = socket.inet_aton(ip_str)
-        # Check standard private IP ranges
-        # 10.0.0.0 - 10.255.255.255
-        # 172.16.0.0 - 172.31.255.255
-        # 192.168.0.0 - 192.168.255.255
-        # 127.0.0.0 - 127.255.255.255
         if ip_str.startswith('127.') or ip_str.startswith('10.') or ip_str.startswith('192.168.'):
             return True
         if ip_str.startswith('172.'):
@@ -25,17 +19,14 @@ def is_private_ip(ip_str):
                 return True
         return False
     except socket.error:
-        # Not a valid IPv4 address (could be a hostname)
-        # We should theoretically resolve the hostname and check its IP,
-        # but for simplicity, we just block 'localhost'
         if ip_str.lower() == 'localhost':
             return True
         return False
 
 def fetch_endpoint_html(url: str) -> dict:
     """
-    Fetches HTML from a target URL with strict security guardrails.
-    Returns a dict with 'status' and 'html' or 'error'.
+    Fetches HTML + headers from a target URL with security guardrails.
+    Returns comprehensive evidence: status code, headers, HTML body, error details.
     """
     try:
         parsed_url = urlparse(url)
@@ -43,59 +34,86 @@ def fetch_endpoint_html(url: str) -> dict:
         if not hostname:
             return {"status": "error", "error": "Invalid URL"}
             
-        # 1. SSRF Prevention: Resolve hostname and check if it's a private IP
+        # 1. SSRF Prevention
         try:
-            # getaddrinfo handles both IPv4 and IPv6
             addr_info = socket.getaddrinfo(hostname, None)
             ip_address = addr_info[0][4][0]
             if is_private_ip(ip_address):
-                return {"status": "rejected_private_ip", "error": "Target resolves to a private/internal IP address. Fetch blocked for SSRF prevention."}
+                return {"status": "rejected_private_ip", "error": "Target resolves to a private/internal IP address."}
         except socket.gaierror:
-            return {"status": "error", "error": "Could not resolve hostname (Blocked for SSRF Prevention)."}
+            return {"status": "error", "error": f"Could not resolve hostname: {hostname}"}
 
-        # 2. Fetch with Timeout and Custom User-Agent
+        # 2. Fetch with extended timeout and realistic User-Agent
         headers = {
-            "User-Agent": "Corvus-Security-Assessment/1.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
         }
         
-        # Verify=False to allow testing against internal/self-signed certs (common in pentesting)
-        response = requests.get(url, headers=headers, timeout=5, verify=False)
-        response.raise_for_status()
+        response = requests.get(url, headers=headers, timeout=15, verify=False, allow_redirects=True)
         
+        # 3. Capture response headers (security-relevant ones)
+        resp_headers = dict(response.headers)
+        security_headers = {}
+        important_headers = [
+            'x-frame-options', 'content-security-policy', 'strict-transport-security',
+            'x-content-type-options', 'x-xss-protection', 'access-control-allow-origin',
+            'access-control-allow-credentials', 'set-cookie', 'server',
+            'x-powered-by', 'content-type', 'location', 'www-authenticate',
+            'cache-control', 'pragma', 'referrer-policy', 'permissions-policy',
+            'cross-origin-opener-policy', 'cross-origin-resource-policy'
+        ]
+        for key, value in resp_headers.items():
+            if key.lower() in important_headers:
+                security_headers[key] = value
+        
+        # 4. Extract and clean HTML body
         html_content = response.text
         
-        # 3. Extract <body>
+        # Extract <head> for meta tags (useful for CSP meta tags, etc.)
+        head_match = re.search(r'<head[^>]*>(.*?)</head>', html_content, re.IGNORECASE | re.DOTALL)
+        head_meta = ""
+        if head_match:
+            meta_tags = re.findall(r'<meta[^>]+>', head_match.group(1), re.IGNORECASE)
+            head_meta = "\n".join(meta_tags[:10])  # Keep first 10 meta tags
+        
+        # Extract <body>
         body_match = re.search(r'<body[^>]*>(.*?)</body>', html_content, re.IGNORECASE | re.DOTALL)
         if body_match:
             body_content = body_match.group(1)
         else:
-            body_content = html_content # fallback if no body tag
+            body_content = html_content
             
-        # 4. Filter PII and heavy tags
-        # Remove <script>, <style>, <meta>, <img>, <link>
-        body_content = re.sub(r'<(script|style|meta|link)[^>]*>.*?</\1>', '', body_content, flags=re.IGNORECASE | re.DOTALL)
-        body_content = re.sub(r'<(script|style|meta|link|img)[^>]*?/?>', '', body_content, flags=re.IGNORECASE)
+        # Remove <script>, <style>, <link> content but keep structure
+        body_content = re.sub(r'<(script|style|link)[^>]*>.*?</\1>', '', body_content, flags=re.IGNORECASE | re.DOTALL)
+        body_content = re.sub(r'<(script|style|link|img)[^>]*?/?>', '', body_content, flags=re.IGNORECASE)
         
-        # Remove event handlers (on...)
+        # Remove event handlers
         body_content = re.sub(r'\s+on[a-z]+="[^"]*"', '', body_content, flags=re.IGNORECASE)
         body_content = re.sub(r"\s+on[a-z]+='[^']*'", '', body_content, flags=re.IGNORECASE)
         
-        # Remove value attributes from <input>
-        body_content = re.sub(r'\s+value="[^"]*"', '', body_content, flags=re.IGNORECASE)
-        body_content = re.sub(r"\s+value='[^']*'", '', body_content, flags=re.IGNORECASE)
-        
-        # Remove excessive whitespace
+        # Clean whitespace
         body_content = re.sub(r'\s+', ' ', body_content).strip()
         
-        # 5. Extract just the first 400 characters
-        truncated_body = body_content[:400]
+        # Keep up to 5000 chars
+        if len(body_content) > 5000:
+            body_content = body_content[:5000] + "\n...[TRUNCATED]"
         
-        return {"status": "success", "html": truncated_body}
+        return {
+            "status": "success",
+            "status_code": response.status_code,
+            "headers": security_headers,
+            "meta_tags": head_meta,
+            "html": body_content,
+            "redirect_history": [r.url for r in response.history] if response.history else [],
+            "final_url": str(response.url)
+        }
         
     except requests.exceptions.Timeout:
-        return {"status": "timeout", "error": "Request timed out after 5 seconds."}
+        return {"status": "timeout", "error": "Request timed out after 15 seconds."}
+    except requests.exceptions.ConnectionError as e:
+        return {"status": "connection_error", "error": f"Connection failed: {str(e)[:200]}"}
     except requests.exceptions.RequestException as e:
-        return {"status": "error", "error": f"HTTP Request failed: {str(e)}"}
+        return {"status": "error", "error": f"HTTP Request failed: {str(e)[:200]}"}
     except Exception as e:
-        return {"status": "error", "error": f"Unexpected error: {str(e)}"}
+        return {"status": "error", "error": f"Unexpected error: {str(e)[:200]}"}

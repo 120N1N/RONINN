@@ -55,6 +55,11 @@ const PROVIDER_MODELS = {
         { name: "command-r", tags: ["Trial", "RAG & Security"] },
         { name: "command-r-plus", tags: ["Trial", "Advanced Reasoning"] }
     ],
+    "River.ai": [
+        { name: "Qwen/Qwen3.5-9B", tags: ["Default", "Fast Inference"] },
+        { name: "Qwen/Qwen2.5-72B-Instruct", tags: ["High Accuracy", "Deep Reasoning"] },
+        { name: "meta-llama/Llama-3.1-8B-Instruct", tags: ["Lightweight"] }
+    ],
     "OpenAI Compatible": [
         { name: "Custom-LLM-1", tags: ["Local / Proxied endpoint"] },
         { name: "vLLM-Model", tags: ["High throughput"] },

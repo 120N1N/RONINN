@@ -26,3 +26,5 @@ joblib
 reportlab
 slowapi==0.1.9
 playwright
+python-whois
+river-client

@@ -14,8 +14,20 @@ class Normalizer:
     def generate_finding_hash(finding: Dict[str, Any]) -> str:
         """Generates a hash to identify duplicate findings."""
         # Significant fields: endpoint, type, source/parameter
-        endpoint = finding.get("endpoint") or finding.get("location", "")
-        vuln_type = finding.get("type") or finding.get("name", "")
+        raw_endpoint = finding.get("endpoint") or finding.get("location", "")
+        endpoint = raw_endpoint.rstrip("/").lower()
+        vuln_type = str(finding.get("type") or finding.get("name", "")).lower().replace(" ", "_")
+        
+        # Kanonikalisasi tipe temuan yang ekuivalen untuk mencegah duplikasi lintas modul
+        if "security_header" in vuln_type or "missing_header" in vuln_type:
+            vuln_type = "missing_security_headers"
+        elif "clickjacking" in vuln_type:
+            vuln_type = "clickjacking"
+        elif "cors" in vuln_type:
+            vuln_type = "cors_misconfiguration"
+        elif "rate_limit" in vuln_type:
+            vuln_type = "rate_limiting"
+
         param = finding.get("parameter") or ""
         data = f"{endpoint}|{vuln_type}|{param}"
         return hashlib.sha256(data.encode()).hexdigest()
@@ -40,6 +52,18 @@ class Normalizer:
             f_hash = Normalizer.generate_finding_hash(f)
             if f_hash not in unique_findings:
                 f["severity"] = Normalizer.normalize_severity(f.get("severity", "INFO"))
+                f["name"] = f.get("name") or f.get("type", "Identified Vulnerability")
+                f["type"] = f.get("type") or f.get("name", "vulnerability")
+                f["location"] = f.get("location") or f.get("endpoint", "/")
+                f["endpoint"] = f.get("endpoint") or f.get("location", "/")
+                if not f.get("id"):
+                    import uuid
+                    f["id"] = f"COR-{uuid.uuid4().hex[:6].upper()}"
+                if not f.get("owasp_code") or not f.get("category"):
+                    from backend.core.owasp import map_to_owasp
+                    owasp_data = map_to_owasp(f["type"])
+                    f["owasp_code"] = f.get("owasp_code") or owasp_data.get("code", "A00:2021")
+                    f["category"] = f.get("category") or owasp_data.get("name", "General Vulnerability")
                 
                 # Enrich with Caido profile features
                 endpoint = f.get("endpoint") or f.get("location", "")

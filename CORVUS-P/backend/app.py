@@ -19,6 +19,24 @@ from backend.db import models
 if settings.APP_ENV != "production":
     Base.metadata.create_all(bind=engine)
 
+# Auto-migrate: add 'recon' and 'logs' column if they don't exist yet
+try:
+    from sqlalchemy import text, inspect
+    insp = inspect(engine)
+    columns = [c['name'] for c in insp.get_columns('scans')]
+    if 'recon' not in columns:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE scans ADD COLUMN recon JSON DEFAULT '{}'"))
+            conn.commit()
+        logging.info("Auto-migration: Added 'recon' column to scans table.")
+    if 'logs' not in columns:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE scans ADD COLUMN logs JSON DEFAULT '[]'"))
+            conn.commit()
+        logging.info("Auto-migration: Added 'logs' column to scans table.")
+except Exception as mig_err:
+    logging.warning(f"Auto-migration skipped or failed: {mig_err}")
+
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +53,15 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+
+@app.on_event("startup")
+async def startup_event():
+    import asyncio
+    from backend.api.websocket import set_server_loop
+    try:
+        set_server_loop(asyncio.get_running_loop())
+    except Exception:
+        pass
 
 # SlowAPI Rate Limiting Setup
 app.state.limiter = limiter

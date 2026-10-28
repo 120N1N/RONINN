@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { isFindingTruePositive, getFindingConfidenceScore } from '../utils/findingHelper';
 
 const ToolResultBreakdown = ({ findings, caidoProfile }) => {
   // Kelompokkan temuan berdasarkan source tool
@@ -78,18 +79,11 @@ const ToolResultBreakdown = ({ findings, caidoProfile }) => {
     return counts;
   };
 
-  // Hitung AI-BRAIN validation stats
+  // Hitung AI-BRAIN & Random Forest validation stats
   const getAIValidationStats = (findings) => {
-    const validated = findings.filter(f => f.ai_brain_validation || f.ai_validation);
-    const tp = validated.filter(f => {
-        const val = f.ai_brain_validation || f.ai_validation;
-        return val?.is_valid;
-    }).length;
-    const fp = validated.filter(f => {
-        const val = f.ai_brain_validation || f.ai_validation;
-        return val && !val.is_valid;
-    }).length;
-    return { total: validated.length, tp, fp };
+    const tp = findings.filter(isFindingTruePositive).length;
+    const fp = findings.filter(f => !isFindingTruePositive(f)).length;
+    return { total: findings.length, tp, fp };
   };
 
   return (
@@ -269,9 +263,10 @@ const ToolDetailSection = ({ config, findings, caidoProfile }) => {
             </thead>
             <tbody>
               {findings.map((finding, index) => {
-                const aiVal = finding.ai_brain_validation || finding.ai_validation;
+                const isTp = isFindingTruePositive(finding);
+                const confScore = getFindingConfidenceScore(finding);
                 return (
-                <tr key={index} className={aiVal?.is_valid === false ? 'row-false-positive' : ''}>
+                <tr key={index} className={!isTp ? 'row-false-positive' : ''}>
                   <td>{index + 1}</td>
                   <td>
                     <strong>{finding.type || 'Unknown'}</strong>
@@ -283,33 +278,24 @@ const ToolDetailSection = ({ config, findings, caidoProfile }) => {
                   <td>{getSeverityBadge(finding.severity)}</td>
                   <td className="endpoint-cell">{finding.endpoint || 'N/A'}</td>
                   <td>
-                    {aiVal ? (
-                      aiVal.is_valid ? (
-                        <span className="ai-badge-valid">✅ TP</span>
-                      ) : (
-                        <span className="ai-badge-invalid">❌ FP</span>
-                      )
+                    {isTp ? (
+                      <span className="ai-badge-valid">✅ TP</span>
                     ) : (
-                      <span className="ai-badge-pending">⏳ Belum</span>
+                      <span className="ai-badge-invalid">❌ FP</span>
                     )}
                   </td>
                   <td>
-                    {aiVal?.confidence_score ? (
-                      <div className="confidence-bar">
-                        <div
-                          className="confidence-fill"
-                          style={{ width: `${aiVal.confidence_score * 100}%` }}
-                        />
-                        <span>{(aiVal.confidence_score * 100).toFixed(0)}%</span>
-                      </div>
-                    ) : finding.confidence_score ? (
-                      <span>{(finding.confidence_score * 100).toFixed(0)}%</span>
-                    ) : (
-                      <span>-</span>
-                    )}
+                    <div className="confidence-bar">
+                      <div
+                        className="confidence-fill"
+                        style={{ width: `${confScore}%` }}
+                      />
+                      <span>{confScore}%</span>
+                    </div>
                   </td>
                 </tr>
-              )})}
+                );
+              })}
             </tbody>
           </table>
 

@@ -83,12 +83,12 @@ def check_rate_limiting(url: str) -> List[Dict[str, Any]]:
             
         if success_count == max_req:
              findings.append({
-                "type": "no_rate_limiting",
-                "name": "No Rate Limiting Detected",
-                "severity": "LOW",
+                "type": "rate_limiting",
+                "name": "Unrestricted Request Baseline (No Aggressive Throttling)",
+                "severity": "INFO",
                 "location": url,
-                "description": f"Target did not return 429 Too Many Requests after {max_req} rapid requests.",
-                "remediation": "Implement rate limiting/throttling to prevent brute force and DoS."
+                "description": f"Target mengizinkan {max_req} request berturut-turut tanpa pembatasan IP (HTTP 429). Standar untuk browsing halaman publik, namun pastikan rate-limiting diterapkan ketat pada endpoint otentikasi/API.",
+                "remediation": "Terapkan rate limiting/throttling terutama pada rute otentikasi, login, reset password, dan API sensitif."
             })
     except Exception:
         pass

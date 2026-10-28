@@ -1,59 +1,85 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, LogOut, LogIn, Menu, X, Shield, Key, Cpu, FileText, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, LogIn, Menu, X, Shield, Key, Cpu, FileText, LayoutDashboard, Settings } from 'lucide-react';
 import logo from '../assets/logo.png';
+import { useTheme } from '../context/ThemeContext';
+import ThemeSettingsModal from './ThemeSettingsModal';
 
 const Navbar = ({ user, onLogout }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+    const { theme, toggleTheme } = useTheme();
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
     return (
-        <nav className="mb-8 md:mb-12 border-b border-red-900/20 pb-4 md:pb-6 max-w-[1800px] mx-auto sticky top-0 z-50 bg-[#0f0f0f]/90 backdrop-blur-md px-2 sm:px-4">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Link to="/" onClick={closeMobileMenu} className="flex items-center gap-3 group">
+        <>
+        <nav className="mb-6 md:mb-10 border-b border-slate-200 dark:border-red-900/20 pb-4 md:pb-6 max-w-[1800px] w-full min-w-0 mx-auto relative z-30 transition-colors">
+            <div className="flex items-center justify-between gap-2 sm:gap-4 w-full min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <Link to="/" onClick={closeMobileMenu} className="flex items-center gap-2 sm:gap-3 group">
                         <div className="group-hover:scale-110 transition-transform">
-                            <img src={logo} alt="Corvus Logo" className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-2xl shadow-[0_0_20px_rgba(220,38,38,0.3)]" />
+                            <img src={logo} alt="Corvus Logo" className="w-9 h-9 sm:w-11 sm:h-11 object-cover rounded-2xl shadow-[0_0_20px_rgba(220,38,38,0.3)]" />
                         </div>
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white italic">CORVUS</h1>
-                            <p className="text-[7px] sm:text-[8px] text-red-500 font-bold tracking-[0.3em] uppercase">Automated Testing</p>
+                            <h1 className="text-lg sm:text-xl font-black tracking-tight italic" style={{ color: 'var(--text-primary)' }}>CORVUS</h1>
+                            <p className="nav-scalable-sub text-red-600 font-bold tracking-[0.2em] uppercase text-[8px] sm:text-[9px]">Automated Testing</p>
                         </div>
                     </Link>
                 </div>
 
-                {/* Desktop & Tablet Navigation (768px+) */}
-                <div className="hidden md:flex items-center gap-6 lg:gap-8">
-                    <div className="flex gap-6 lg:gap-8 items-center">
-                        <Link to="/" className="text-[10px] font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Dashboard</Link>
-                        <Link to="/reports" className="text-[10px] font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Reports</Link>
+                {/* Desktop & Tablet Navigation */}
+                <div className="hidden md:flex items-center gap-2 lg:gap-3.5 xl:gap-6 shrink-0">
+                    <div className="flex gap-2 lg:gap-3.5 xl:gap-6 items-center text-[11px] lg:text-xs xl:text-sm">
+                        <Link to="/" className="nav-scalable-text font-black text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors uppercase tracking-widest">Dashboard</Link>
+                        <Link to="/reports" className="nav-scalable-text font-black text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors uppercase tracking-widest">Reports</Link>
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            className="nav-scalable-text font-black text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors uppercase tracking-widest cursor-pointer bg-transparent border-0 p-0 focus:outline-none"
+                            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                        >
+                            {theme === 'dark' ? 'LIGHT' : 'DARK'}
+                        </button>
+
                         {user && (
                             <>
-
                                 {user.username === 'admin' && (
-                                    <Link to="/models" className="text-[10px] font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Models</Link>
+                                    <Link to="/models" className="nav-scalable-text font-black text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors uppercase tracking-widest">Models</Link>
                                 )}
                             </>
                         )}
-                        <Link to="/docs" className="text-[10px] font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Docs</Link>
+                        <Link to="/docs" className="nav-scalable-text font-black text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors uppercase tracking-widest">Docs</Link>
+                    </div>
+
+                    {/* Interface & Theme Settings Modal Button */}
+                    <div className="flex items-center pl-1.5 xl:pl-2 border-l border-slate-200 dark:border-red-900/20">
+                        <button
+                            type="button"
+                            onClick={() => setIsThemeModalOpen(true)}
+                            title="Interface Settings"
+                            className="px-2.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 hover:bg-red-500/10 transition-all border border-slate-200 dark:border-slate-800/60 hover:border-red-600/40 flex items-center gap-1.5 cursor-pointer nav-scalable-button font-black uppercase tracking-widest text-[10px] xl:text-xs"
+                        >
+                            <Settings className="w-3.5 h-3.5" />
+                            <span>SETTING</span>
+                        </button>
                     </div>
 
                     {user ? (
-                        <div className="flex items-center gap-3 lg:gap-4">
-                            <Link to="/profile" className="flex items-center gap-2 bg-red-600/10 border border-red-900/30 px-4 lg:px-5 py-2 rounded-xl text-[10px] font-black text-red-500 uppercase tracking-widest italic hover:bg-red-600/20 transition-colors">
+                        <div className="flex items-center gap-1.5 lg:gap-3">
+                            <Link to="/profile" className="flex items-center gap-1.5 bg-red-600/10 border border-red-900/30 px-2.5 lg:px-4 py-1.5 rounded-xl nav-scalable-button font-black text-red-500 uppercase tracking-widest italic hover:bg-red-600/20 transition-colors text-[10px] xl:text-xs">
                                 {user.photo_url ? (
-                                    <img src={user.photo_url} alt="Profile" className="w-5 h-5 rounded-full object-cover border border-red-500/50" />
+                                    <img src={user.photo_url} alt="Profile" className="w-4 h-4 rounded-full object-cover border border-red-500/50" />
                                 ) : (
                                     <User className="w-3 h-3" />
                                 )}
                                 {user.first_name || user.username}
                             </Link>
-                            <button onClick={onLogout} title="Logout" className="text-slate-500 hover:text-red-500 transition-colors p-2"><LogOut className="w-5 h-5" /></button>
+                            <button onClick={onLogout} title="Logout" className="text-slate-500 hover:text-red-500 transition-colors p-1.5 cursor-pointer"><LogOut className="w-4 h-4" /></button>
                         </div>
                     ) : (
-                        <Link to="/login" className="bg-red-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black hover:bg-white hover:text-red-900 transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-600/20">
+                        <Link to="/login" className="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black hover:bg-white hover:text-red-900 transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-600/20">
                             <LogIn className="w-4 h-4" /> SECURE LOGIN
                         </Link>
                     )}
@@ -86,6 +112,15 @@ const Navbar = ({ user, onLogout }) => {
                     <Link to="/reports" onClick={closeMobileMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-black text-slate-200 hover:text-red-400 hover:bg-red-950/20 transition-all uppercase tracking-widest">
                         <FileText className="w-4 h-4 text-red-500" /> Audit Reports
                     </Link>
+
+                    <button
+                        onClick={() => { toggleTheme(); closeMobileMenu(); }}
+                        className="text-left px-4 py-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-black text-slate-200 hover:text-red-400 hover:bg-red-950/20 transition-all uppercase tracking-widest cursor-pointer flex justify-between items-center"
+                    >
+                        <span>MODE: {theme === 'dark' ? 'LIGHT' : 'DARK'}</span>
+                        <span className="text-[9px] text-slate-500 font-mono">TOGGLE</span>
+                    </button>
+
                     {user && (
                         <>
                             {user.username === 'admin' && (
@@ -102,6 +137,16 @@ const Navbar = ({ user, onLogout }) => {
                         <Shield className="w-4 h-4 text-red-500" /> Documentation
                     </Link>
 
+                    <div className="pt-2 border-t border-red-900/20">
+                        <button
+                            onClick={() => { setIsThemeModalOpen(true); closeMobileMenu(); }}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-black text-slate-300 hover:text-red-400 uppercase tracking-widest"
+                        >
+                            <Settings className="w-4 h-4 text-red-500" />
+                            <span>SETTING</span>
+                        </button>
+                    </div>
+
                     {user ? (
                         <button 
                             onClick={() => { onLogout(); closeMobileMenu(); }} 
@@ -117,6 +162,8 @@ const Navbar = ({ user, onLogout }) => {
                 </div>
             )}
         </nav>
+        <ThemeSettingsModal isOpen={isThemeModalOpen} onClose={() => setIsThemeModalOpen(false)} />
+        </>
     );
 };
 

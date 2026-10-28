@@ -1,11 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Mail, Shield, Camera, Key, Check, Loader2, Upload } from 'lucide-react';
+import { User, Mail, Shield, Camera, Key, Check, Loader2, Upload, Type, Sun, Moon, Sliders } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 export default function Profile({ user, fetchMe }) {
     const navigate = useNavigate();
+    const { 
+        theme, 
+        setTheme, 
+        fontFamily, 
+        setFontFamily, 
+        fontSize, 
+        setFontSize, 
+        FONT_OPTIONS, 
+        FONT_SIZE_OPTIONS 
+    } = useTheme();
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const [photoLoading, setPhotoLoading] = useState(false);
@@ -242,6 +253,111 @@ export default function Profile({ user, fetchMe }) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+
+                    {/* Interface & Typography Settings Card */}
+                    <div className="corvus-card rounded-3xl p-8 shadow-xl mt-8">
+                        <div className="flex items-center justify-between border-b border-red-900/20 pb-4 mb-6">
+                            <h3 className="text-lg font-black italic uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                                <Sliders className="w-5 h-5 text-red-500" /> Interface & Typography Settings
+                            </h3>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Live Applied</span>
+                        </div>
+
+                        {/* Theme Style */}
+                        <div className="mb-6">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Theme Style</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme('dark')}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                                        theme === 'dark'
+                                            ? 'border-red-600 bg-red-600/10 shadow-[0_0_15px_rgba(220,38,38,0.2)]'
+                                            : 'border-slate-800/80 bg-black/20 hover:border-slate-700'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-xl bg-black/60 border border-red-900/40 text-red-400">
+                                            <Moon className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs font-black uppercase tracking-wider text-slate-200">Dark Mode</div>
+                                            <div className="text-[9px] text-slate-500">Obsidian Cyber</div>
+                                        </div>
+                                    </div>
+                                    {theme === 'dark' && <Check className="w-4 h-4 text-red-500" />}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme('light')}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                                        theme === 'light'
+                                            ? 'border-red-600 bg-red-600/10 shadow-[0_0_15px_rgba(220,38,38,0.2)]'
+                                            : 'border-slate-800/80 bg-black/20 hover:border-slate-700'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-500">
+                                            <Sun className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs font-black uppercase tracking-wider text-slate-200">Light Mode</div>
+                                            <div className="text-[9px] text-slate-500">Clean Slate</div>
+                                        </div>
+                                    </div>
+                                    {theme === 'light' && <Check className="w-4 h-4 text-red-500" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Font Family */}
+                        <div className="mb-6">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3 flex items-center gap-1.5">
+                                <Type className="w-3.5 h-3.5 text-red-500" /> UI Font Family
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {FONT_OPTIONS.map((f) => (
+                                    <button
+                                        key={f.id}
+                                        type="button"
+                                        onClick={() => setFontFamily(f.id)}
+                                        style={{ fontFamily: f.family }}
+                                        className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
+                                            fontFamily === f.id
+                                                ? 'border-red-600 bg-red-600/10 text-red-400 font-bold'
+                                                : 'border-slate-800/60 bg-black/20 hover:border-slate-700 text-slate-300'
+                                        }`}
+                                    >
+                                        <span className="text-xs">{f.name}</span>
+                                        {fontFamily === f.id && <Check className="w-3.5 h-3.5 text-red-500" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Font Size */}
+                        <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">UI Font Density / Scale</label>
+                            <div className="grid grid-cols-3 gap-3">
+                                {FONT_SIZE_OPTIONS.map((s) => (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => setFontSize(s.id)}
+                                        className={`p-3 rounded-xl border text-center transition-all ${
+                                            fontSize === s.id
+                                                ? 'border-red-600 bg-red-600/10 text-red-400 font-bold'
+                                                : 'border-slate-800/60 bg-black/20 hover:border-slate-700 text-slate-400'
+                                        }`}
+                                    >
+                                        <div className="text-xs font-black uppercase tracking-wider">{s.name}</div>
+                                        <div className="text-[10px] opacity-60 mt-0.5">{s.label}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

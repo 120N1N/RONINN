@@ -16,6 +16,8 @@ orchestrator = Orchestrator()
 # --- AUTH ---
 @router.post("/auth/register")
 def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+    if len(user.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if db_user: raise HTTPException(status_code=400, detail="Username taken")
     hashed = auth.get_password_hash(user.password)
@@ -185,19 +187,69 @@ def upload_profile_photo(file: UploadFile = File(...), db: Session = Depends(dat
 # --- SCAN CORE ---
 @router.post("/scan")
 @limiter.limit("2/minute")
-def start_scan(request_obj: Request, request: schemas.ScanRequest, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    new_scan = models.Scan(target=request.target, mode=request.mode, status="PENDING", progress=0, user_id=current_user.id)
+def start_scan(request: Request, payload: schemas.ScanRequest, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    new_scan = models.Scan(target=payload.target, mode=payload.mode, status="PENDING", progress=0, user_id=current_user.id)
     db.add(new_scan)
     db.commit()
     db.refresh(new_scan)
-    background_tasks.add_task(orchestrator.run_scan, new_scan.id, request.target, request.mode)
+    background_tasks.add_task(orchestrator.run_scan, new_scan.id, payload.target, payload.mode)
     return new_scan
+
+@router.get("/scans/active")
+def get_active_scan(db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    scan = db.query(models.Scan).filter(
+        models.Scan.user_id == current_user.id,
+        models.Scan.status.in_(["RUNNING", "PENDING"])
+    ).order_by(models.Scan.created_at.desc()).first()
+    return scan
+
+def ensure_ai_summary(scan: models.Scan) -> dict:
+    """Memastikan ai_summary selalu ada di objek scan, termasuk untuk histori lama."""
+    if getattr(scan, "ai_summary", None):
+        return scan.ai_summary
+    if scan.tool_outputs and isinstance(scan.tool_outputs, dict) and "ai_brain_summary" in scan.tool_outputs:
+        return scan.tool_outputs["ai_brain_summary"]
+    
+    findings = scan.findings or []
+    validated_findings = [f for f in findings if f.get("ai_brain_validation") or f.get("ai_validation")]
+    val_count = len(validated_findings)
+    tp_count = sum(1 for f in findings if (
+        (f.get("ai_brain_validation") or f.get("ai_validation") or {}).get("is_valid") is True
+        or f.get("ai_brain_valid") is True
+        or (f.get("rf_validation") or {}).get("predicted_class") == "Valid Finding"
+        or float(f.get("confidence_score") or 0.0) >= 50.0
+    ))
+    fp_count = max(0, len(findings) - tp_count)
+    avg_conf = (
+        sum((f.get("ai_brain_validation") or f.get("ai_validation") or {}).get("confidence_score", 0.85) for f in validated_findings) / val_count
+    ) if val_count > 0 else 0.0
+    
+    summary = {
+        "title": "AI-BRAIN SECURITY ANALYST",
+        "subtitle": "Autonomous verification & False Positive elimination engine",
+        "total_findings": len(findings),
+        "validated_count": val_count,
+        "tp_count": tp_count,
+        "fp_count": fp_count,
+        "avg_confidence": round(avg_conf, 4),
+        "executive_summary": f"Audit riwayat mencakup {len(findings)} temuan dengan {tp_count} True Positive dan {fp_count} False Positive terverifikasi AI-BRAIN." if len(findings) > 0 else "Audit selesai. Tidak ada kerentanan terdeteksi pada target.",
+        "timestamp": scan.created_at.isoformat() if scan.created_at else None
+    }
+    return summary
 
 @router.get("/scan/{scan_id}")
 def get_scan(scan_id: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     scan = db.query(models.Scan).filter(models.Scan.id == scan_id, models.Scan.user_id == current_user.id).first()
     if not scan: raise HTTPException(status_code=404, detail="Not found")
+    if not scan.ai_summary:
+        scan.ai_summary = ensure_ai_summary(scan)
     return scan
+
+@router.get("/scans/{scan_id}/logs")
+def get_scan_logs(scan_id: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    scan = db.query(models.Scan).filter(models.Scan.id == scan_id, models.Scan.user_id == current_user.id).first()
+    if not scan: raise HTTPException(status_code=404, detail="Not found")
+    return {"logs": scan.logs or []}
 
 @router.get("/scans/{scan_id}/tools/{tool_name}/log")
 def get_tool_log(scan_id: str, tool_name: str, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
@@ -217,20 +269,46 @@ def get_tool_log(scan_id: str, tool_name: str, current_user: models.User = Depen
 
 @router.get("/reports")
 def list_reports(db: Session = Depends(database.get_db), offset: int = 0, limit: int = 10, current_user: models.User = Depends(auth.get_current_user)):
-    return db.query(models.Scan).filter(models.Scan.user_id == current_user.id).order_by(models.Scan.last_scan_at.desc()).offset(offset).limit(limit).all()
+    scans = db.query(models.Scan).filter(models.Scan.user_id == current_user.id).order_by(models.Scan.last_scan_at.desc()).offset(offset).limit(limit).all()
+    for s in scans:
+        if not s.ai_summary:
+            s.ai_summary = ensure_ai_summary(s)
+    return scans
 
 # --- EXPORTS ---
 @router.get("/reports/{scan_id}/json")
 def export_json(scan_id: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     scan = db.query(models.Scan).filter(models.Scan.id == scan_id, models.Scan.user_id == current_user.id).first()
     if not scan: raise HTTPException(status_code=404, detail="Not found")
-    return JSONResponse(content={"id": scan.id, "target": scan.target, "findings": scan.findings})
+    ai_sum = ensure_ai_summary(scan)
+    return JSONResponse(content={
+        "id": scan.id,
+        "target": scan.target,
+        "mode": scan.mode,
+        "status": scan.status,
+        "created_at": scan.created_at.isoformat() if scan.created_at else None,
+        "finished_at": scan.finished_at.isoformat() if scan.finished_at else None,
+        "ai_brain_summary": ai_sum,
+        "findings": scan.findings,
+        "recon": scan.recon
+    })
 
 @router.delete("/reports/{scan_id}")
 def delete_report(scan_id: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     scan = db.query(models.Scan).filter(models.Scan.id == scan_id, models.Scan.user_id == current_user.id).first()
     if not scan: raise HTTPException(status_code=404, detail="Not found")
     
+    # Bersihkan relasi foreign key sebelum menghapus record scan
+    db.query(models.VulnerabilityFingerprint).filter(
+        models.VulnerabilityFingerprint.first_seen_scan_id == scan_id
+    ).update({"first_seen_scan_id": None})
+    db.query(models.VulnerabilityFingerprint).filter(
+        models.VulnerabilityFingerprint.last_seen_scan_id == scan_id
+    ).update({"last_seen_scan_id": None})
+    db.query(models.Scan).filter(
+        models.Scan.parent_scan_id == scan_id
+    ).update({"parent_scan_id": None})
+
     # Delete database record
     db.delete(scan)
     db.commit()
